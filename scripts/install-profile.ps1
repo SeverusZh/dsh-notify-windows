@@ -18,7 +18,7 @@ if (-not $Version) {
   $pkgJson = Get-Content (Join-Path $repoRoot "package.json") -Raw | ConvertFrom-Json
   $Version = $pkgJson.version
 }
-$pkgDirName = "dsh-notify-" + $Version
+$pkgDirName = $pkgJson.name + "-" + $Version
 
 # Prefer the profile's own node_modules; fall back to the hoisted sibling at
 # the profiles root (where this machine hoists all profile dependencies).
@@ -43,11 +43,12 @@ if (Test-Path $destLib) { Remove-Item $destLib -Recurse -Force }
 Copy-Item (Join-Path $repoRoot "lib") $destLib -Recurse -Force
 Write-Output "copied plugin to $dest"
 
-# Drop the legacy unsuffixed deployment so only versioned dirs remain.
-$legacy = Join-Path $targetRoot "dsh-notify"
-if ((Test-Path $legacy) -and $pkgDirName -ne "dsh-notify") {
-  Remove-Item $legacy -Recurse -Force
-  Write-Output "removed legacy deployment $legacy"
+# Drop stale deployments of this plugin (unsuffixed legacy dir and old
+# versioned dirs) so only the current versioned dir remains.
+$stale = Get-ChildItem $targetRoot -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match "^(dsh-notify|dsh-notify-windows)(-\d|\.|$)" -and $_.Name -ne $pkgDirName }
+foreach ($dir in $stale) {
+  Remove-Item $dir.FullName -Recurse -Force
+  Write-Output ("removed stale deployment " + $dir.FullName)
 }
 
 # Append the loader entry once, or refresh its module name on redeploy.

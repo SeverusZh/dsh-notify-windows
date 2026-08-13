@@ -67,6 +67,9 @@ pwsh scripts\install-profile.ps1 -Profile web
 | `notifyOnStart` | `false` | 插件加载时发一条「已激活」通知 |
 | `notifyOnApproval` | `true` | 审批请求提醒（策略 `never` 时自动跳过） |
 | `notifyOnAskUser` | `true` | Agent 提问等待回答时提醒 |
+| `notifyOnGoalRounds` | `false` | /goal 自动推进回合不提醒（目标完成/阻塞的最终回合除外） |
+| `excerpt` | `true` | 通知正文附带 Agent 最后回复的摘要 |
+| `excerptMaxChars` | `80` | 摘要最大字符数 |
 | `appName` | `DeepSeek Harness` | 通知来源显示名与兜底标题 |
 | `aumid` | `DeepSeekHarness.Notify` | 通知 AppUserModelId |
 | `log` | `true` | 写日志到 `%TEMP%\dsh-notify\notify.log` |
@@ -92,6 +95,7 @@ node scripts\smoke-test.mjs
 ## ❓ 常见问题
 
 - **收不到通知？** 检查 Windows「通知与操作」设置是否允许该应用显示通知，以及「专注助手」是否开启；首次发送会自动注册 AUMID。
+- **/goal 模式会提醒吗？** 默认不会：自动推进的中间回合保持静默，只有目标完成（或阻塞）的最终回合才提醒；如需每个回合都提醒，把 `notifyOnGoalRounds` 设为 `true`。
 - **为什么审批提醒有时不弹？** 会话审批策略为 `never` 时审批会被自动拒绝、不会等待，插件会跳过提醒；策略为 `ask` 时才提醒。
 - **更新插件代码后如何热更新？** 重新执行安装脚本（版本目录名变化即热加载）；用 npm 安装时执行 `dsh plugin --profile web update dsh-notify-windows` 后重启宿主。
 

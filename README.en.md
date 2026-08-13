@@ -67,6 +67,9 @@ The script deploys the package into the profile's hoisted `node_modules` as `dsh
 | `notifyOnStart` | `false` | toast when the plugin loads |
 | `notifyOnApproval` | `true` | toast on `approval/asked` (skipped under policy `never`) |
 | `notifyOnAskUser` | `true` | toast when the agent asks you a question |
+| `notifyOnGoalRounds` | `false` | stay quiet on /goal auto-continuation rounds (except the final complete/block round) |
+| `excerpt` | `true` | append an excerpt of the agent's final reply to the toast |
+| `excerptMaxChars` | `80` | max characters of the excerpt |
 | `appName` | `DeepSeek Harness` | toast source display name and fallback title |
 | `aumid` | `DeepSeekHarness.Notify` | toast AppUserModelId |
 | `log` | `true` | write `%TEMP%\dsh-notify\notify.log` |
@@ -92,6 +95,7 @@ Runs the plugin on a bare cordis Context with synthetic events: three test toast
 ## ❓ FAQ
 
 - **No toast?** Check Windows notification settings for this app and Focus Assist; the AUMID registers itself on first use.
+- **Do /goal rounds toast?** Not by default: auto-continuation rounds stay quiet and only the final round that completes (or blocks) the goal toasts. Set `notifyOnGoalRounds` to `true` to hear every round.
 - **Approval toasts missing?** Sessions whose approval policy is `never` auto-reject — nothing waits, so the plugin stays quiet. Only `ask`-policy sessions notify.
 - **Hot-update after code changes?** Re-run the install script (the versioned directory name busts the module cache); for npm installs run `dsh plugin --profile web update dsh-notify-windows` and restart the host.
 
