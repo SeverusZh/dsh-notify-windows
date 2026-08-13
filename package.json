@@ -1,0 +1,25 @@
+{
+  "name": "dsh-notify",
+  "version": "0.1.0",
+  "description": "DeepSeek Harness 插件：任务完成时发送 Windows 系统通知",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js"
+  },
+  "files": [
+    "lib"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "plugin",
+    "notify",
+    "toast",
+    "windows"
+  ]
+}
