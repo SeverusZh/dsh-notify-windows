@@ -1,35 +1,39 @@
-# dsh-notify
+# dsh-notify-windows
 
-A DeepSeek Harness (DSH) plugin that sends Windows toast notifications whenever
-the agent needs your attention:
+> A DeepSeek Harness (DSH) plugin that sends Windows toast notifications whenever the agent needs your attention.
 
-1. Task finished (turn/end) — a turn completed, errored, or hit the token cap;
-2. Approval pending (approval/asked) — a permission decision is waiting for you
-   (skipped when the session's approval policy is never, since nothing waits);
-3. Question pending — the agent asked you a question via ask_user_question,
-   including calls nested inside run_code programs (in this deployment every
-   tool call goes through run_code, so the plugin scans run_code source for
-   tools.ask_user_question( calls).
+<p align="center">
+  <img src="https://img.shields.io/npm/v/dsh-notify-windows" alt="npm">
+  <img src="https://img.shields.io/github/license/SeverusZh/dsh-notify-windows" alt="license">
+  <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-blue" alt="platform">
+  <img src="https://img.shields.io/github/stars/SeverusZh/dsh-notify-windows?style=social" alt="stars">
+</p>
 
-Zero runtime dependencies: toasts are sent through Windows PowerShell 5.1's
-WinRT toast API (lib/notify.ps1), with the AppUserModelId registered under HKCU
-on first use (no admin required).
+**Task finished** ✅ ｜ **Approval pending** 🔐 ｜ **Question pending** ❓ — never miss anything that needs you, even away from the screen.
 
-## Install
+## ✨ Features
+
+- **Task completion** — listens to `turn/end` session events; toasts on completed / errored / max-tokens turns, with the session title and reason;
+- **Approval pending** — listens to `approval/asked`; toasts the moment a permission decision is waiting, and skips sessions whose approval policy is `never` (nothing is waiting there);
+- **Question pending** — toasts when the agent calls `ask_user_question`; in this deployment every tool call goes through `run_code`, so the plugin also scans `run_code` source for `tools.ask_user_question(` calls and extracts the question text;
+- **Quiet by default** — subagent sessions are ignored unless `includeSubagents` is set;
+- **Zero dependencies** — toasts are sent through Windows PowerShell 5.1's WinRT toast API, with the AppUserModelId registered under HKCU on first use (no admin required);
+- **Diagnosable** — optional log (`%TEMP%\dsh-notify\notify.log`) and a debug event log.
+
+## 🚀 Install
+
+### Option A: npm (recommended)
 
 ```powershell
-pwsh scripts\install-profile.ps1 -Profile web   # or: dsh plugin --profile web add dsh-notify-windows
+dsh plugin --profile web add dsh-notify-windows
 ```
 
-The script deploys the package into the profile's hoisted node_modules as
-dsh-notify-<version> (the versioned directory lets a running host hot-load a
-redeploy without a restart) and adds this entry to the profile's
-cordis.patch.yml, which the running host hot-applies:
+Then add this entry to the profile's `cordis.patch.yml` (the running host hot-applies it — no restart needed):
 
 ```yaml
 - insert:
     - id: dsh-notify
-      name: 'dsh-notify-0.4.0'
+      name: 'dsh-notify-windows'
       config:
         enabled: true
         reasons: [completed, error, max-tokens]
@@ -43,33 +47,54 @@ cordis.patch.yml, which the running host hot-applies:
         debug: false
 ```
 
-## Configuration
+### Option B: from source
+
+```powershell
+git clone git@github.com:SeverusZh/dsh-notify-windows.git
+cd dsh-notify-windows
+pwsh scripts\install-profile.ps1 -Profile web
+```
+
+The script deploys the package into the profile's hoisted `node_modules` as `dsh-notify-windows-<version>` — the versioned directory lets a running host hot-load a redeploy without a restart — and writes the patch entry above idempotently.
+
+## ⚙️ Configuration
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| enabled | true | master switch |
-| reasons | [completed, error, max-tokens] | turn-end reasons to notify |
-| includeSubagents | false | also notify subagent sessions |
-| notifyOnStart | false | toast when the plugin loads |
-| notifyOnApproval | true | toast on approval/asked (policy-aware) |
-| notifyOnAskUser | true | toast when the agent asks a question |
-| appName | DeepSeek Harness | toast source display name |
-| aumid | DeepSeekHarness.Notify | toast AppUserModelId |
-| log | true | write %TEMP%\dsh-notify\notify.log |
-| debug | false | log every session event (diagnostics, heavy) |
+| `enabled` | `true` | master switch |
+| `reasons` | `[completed, error, max-tokens]` | turn-end reasons to notify (`aborted` / `interrupted` / `blocked` also available) |
+| `includeSubagents` | `false` | also notify subagent sessions |
+| `notifyOnStart` | `false` | toast when the plugin loads |
+| `notifyOnApproval` | `true` | toast on `approval/asked` (skipped under policy `never`) |
+| `notifyOnAskUser` | `true` | toast when the agent asks you a question |
+| `appName` | `DeepSeek Harness` | toast source display name and fallback title |
+| `aumid` | `DeepSeekHarness.Notify` | toast AppUserModelId |
+| `log` | `true` | write `%TEMP%\dsh-notify\notify.log` |
+| `debug` | `false` | log every session event (diagnostics, heavy) |
 
-## Verify
+## 🔔 Triggers
+
+| Scenario | Session event | Sample toast |
+| --- | --- | --- |
+| Task finished | `turn/end` | Task completed (turn N) |
+| Task errored / capped | `turn/end` | Task errored / Output hit token cap |
+| Approval waiting | `approval/asked` | DeepSeek Harness · Needs approval / tool pwsh: … |
+| Question waiting | `tool/call` (incl. run_code detection) | DeepSeek Harness · Needs your answer / Continue? |
+
+## 🧪 Verify
 
 ```powershell
 node scripts\smoke-test.mjs
 ```
 
-Runs the plugin on a bare cordis Context with synthetic events and asserts the
-log output (task, approval, and question toasts fire; subagent / never-policy /
-unrelated events are filtered).
+Runs the plugin on a bare cordis Context with synthetic events: three test toasts fire (completion, approval, question) and the log assertions verify the filtering (subagent, `never`-policy, unrelated calls).
 
-## Limitations
+## ❓ FAQ
 
-- Windows only (requires Windows PowerShell 5.1, shipped with Windows 10/11);
-- toast delivery depends on the system notification / Focus Assist settings;
-- the run_code question detection is heuristic and may miss or misreport.
+- **No toast?** Check Windows notification settings for this app and Focus Assist; the AUMID registers itself on first use.
+- **Approval toasts missing?** Sessions whose approval policy is `never` auto-reject — nothing waits, so the plugin stays quiet. Only `ask`-policy sessions notify.
+- **Hot-update after code changes?** Re-run the install script (the versioned directory name busts the module cache); for npm installs run `dsh plugin --profile web update dsh-notify-windows` and restart the host.
+
+## 📄 License
+
+[MIT](./LICENSE) © 2026 SeverusZh
