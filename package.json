@@ -1,5 +1,5 @@
 {
-  "name": "dsh-notify",
+  "name": "dsh-notify-windows",
   "version": "0.4.0",
   "description": "DeepSeek Harness 插件：任务完成时发送 Windows 系统通知",
   "repository": {

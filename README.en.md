@@ -18,7 +18,7 @@ on first use (no admin required).
 ## Install
 
 ```powershell
-pwsh scripts\install-profile.ps1 -Profile web   # or: dsh plugin --profile web add dsh-notify
+pwsh scripts\install-profile.ps1 -Profile web   # or: dsh plugin --profile web add dsh-notify-windows
 ```
 
 The script deploys the package into the profile's hoisted node_modules as
