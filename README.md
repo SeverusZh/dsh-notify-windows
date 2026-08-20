@@ -80,6 +80,9 @@ dsh plugin --profile web remove dsh-notify-windows
 | `aumid` | `DeepSeekHarness.Notify` | 通知 AppUserModelId |
 | `log` | `true` | 写日志到 `%TEMP%\dsh-notify\notify.log` |
 | `debug` | `false` | 把所有会话事件写入日志（排查用，量大） |
+| `openOnClick` | `true` | 任务完成 / 审批 / 提问 toast 是否可点击（false 回退为旧的无点击 toast） |
+| `preferExisting` | `true` | true 走 launcher 优先聚焦已开 DSH 窗口；false 直接用默认浏览器打开 URL |
+| `webUrl` | `''` | 覆盖自动发现的基地址（如 `http://192.168.1.5:4000`），留空自动发现（默认 `http://127.0.0.1:3080`） |
 
 ## 🔔 触发场景
 
@@ -89,6 +92,22 @@ dsh plugin --profile web remove dsh-notify-windows
 | 任务出错 / 超限 | `turn/end` | 「任务出错」/「输出达到 token 上限」 |
 | 等待审批 | `approval/asked` | 「DeepSeek Harness · 需要审批 / 工具 pwsh：…」 |
 | 等待回答 | `tool/call`（含 run_code 检测） | 「DeepSeek Harness · 需要回答 / 是否继续？」 |
+
+## 🔗 点击通知跳转
+
+任务完成 / 等待审批 / 等待回答的 toast 可点击 → 打开 DSH Web GUI。优先聚焦已打开的
+DSH 浏览器标签或 Chrome Application 窗口；没有已开窗口时在默认浏览器新开标签并打开 GUI。
+目标 URL 带 `?session=<id>` 参数（rc.8 前端暂不消费，为未来深链预留）。
+
+**配置：**
+
+- `openOnClick`（默认 `true`，`false` 则关闭可点击，回退为旧的无点击 toast）；
+- `preferExisting`（默认 `true`，`true` 走 launcher 优先复用已开窗口；`false` 直接用默认浏览器打开 URL）；
+- `webUrl`（可选，覆盖自动发现的基地址，如 `http://192.168.1.5:4000`，留空自动发现 / 默认 `http://127.0.0.1:3080`）。
+
+**注意事项：** 首次点击会自动注册 `dshnotify://` 协议处理器（HKCU，无需管理员）；故障会静默降级为「默认浏览器打开」。
+
+> 说明：DSH 0.1.0-rc.8 前端暂不支持按 URL 直达单个会话；点击后打开的是 DSH 界面（首页/会话列表）并聚焦已有窗口，目标会话需在列表中选择。未来 DSH 前端支持深链后 `?session=<id>` 将直接定位。
 
 ## 🧪 验证
 

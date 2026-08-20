@@ -80,6 +80,9 @@ in `$DSH_HOME/profiles/web/cordis.patch.yml` (hot-applied by the running host �
 | `aumid` | `DeepSeekHarness.Notify` | toast AppUserModelId |
 | `log` | `true` | write `%TEMP%\dsh-notify\notify.log` |
 | `debug` | `false` | log every session event (diagnostics, heavy) |
+| `openOnClick` | `true` | make completion / approval / question toasts clickable (false falls back to the old non-clickable toast) |
+| `preferExisting` | `true` | when true, launcher prefers focusing an open DSH window; when false, just open the URL in the default browser |
+| `webUrl` | `''` | override the auto-discovered base URL (e.g. `http://192.168.1.5:4000`); leave empty to auto-discover (defaults to `http://127.0.0.1:3080`) |
 
 ## 🔔 Triggers
 
@@ -89,6 +92,25 @@ in `$DSH_HOME/profiles/web/cordis.patch.yml` (hot-applied by the running host �
 | Task errored / capped | `turn/end` | Task errored / Output hit token cap |
 | Approval waiting | `approval/asked` | DeepSeek Harness · Needs approval / tool pwsh: … |
 | Question waiting | `tool/call` (incl. run_code detection) | DeepSeek Harness · Needs your answer / Continue? |
+
+## 🔗 Click to open
+
+Toasts for task completion / approval pending / question pending are clickable → they open the
+DSH Web GUI. The plugin prefers to focus an already-open DSH browser tab or Chrome Application
+window; if none is open, it opens a new tab in the default browser and loads the GUI. The target
+URL carries a `?session=<id>` parameter (not yet consumed by the rc.8 frontend — reserved for
+future deep links).
+
+**Configuration:**
+
+- `openOnClick` (default `true`; `false` disables clickability and falls back to the old non-clickable toast);
+- `preferExisting` (default `true`; when true the launcher prefers reusing an existing window; when false it opens the URL directly in the default browser);
+- `webUrl` (optional, overrides the auto-discovered base URL, e.g. `http://192.168.1.5:4000`; leave empty to auto-discover / default `http://127.0.0.1:3080`).
+
+**Notes:** the first click auto-registers the `dshnotify://` protocol handler (HKCU, no admin
+needed); on failure it silently degrades to "open in default browser".
+
+> Note: DSH 0.1.0-rc.8 does not yet support deep-linking to a single session by URL; clicking opens the DSH interface (home / session list) and focuses the existing window, and you pick the target session from the list. Once the DSH frontend supports deep links, `?session=<id>` will jump straight to it.
 
 ## 🧪 Verify
 

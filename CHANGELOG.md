@@ -2,6 +2,27 @@
 
 本项目遵循 [Semantic Versioning](https://semver.org/)。
 
+## [0.7.0] - 2026-08-20
+
+### 新增「点击通知跳转」功能
+
+- 任务完成 / 审批 / 提问的 toast 变为**可点击**：点击后打开 DSH Web GUI。优先聚焦已打开的
+  DSH 浏览器标签或 Chrome Application 窗口；无已开窗口则在默认浏览器新开标签。
+  目标 URL 携带 `?session=<id>`（rc.8 前端暂不消费，为未来深链预留）。
+- **实现**：
+  - `lib/notify.ps1` 使用 `activationType="protocol"` + `launch`（协议 `dshnotify://` 或原始
+    URL），使 toast 点击可触发跳转；
+  - `lib/launcher.ps1` 处理聚焦 / 跳转：CDP 尽力 → Win32 聚焦 → `Start-Process` 兜底；
+  - `lib/index.js` 新增配置 `openOnClick` / `preferExisting` / `webUrl`，并自动发现 web
+    基地址（`ctx.webServer.port`，默认 `http://127.0.0.1:3080`）。
+- **配置表补三行**：`openOnClick`(bool, true)、`preferExisting`(bool, true)、
+  `webUrl`(string, '' 自动发现)。
+
+### 已知限制
+
+- DSH 0.1.0-rc.8 前端暂无会话深链：点击后打开 GUI 首页 / 会话列表并聚焦已有窗口；真正的
+  「一键直达某会话」需前端侧支持。
+
 ## [0.6.0] - 2026-08-20
 
 ### 变更（dsh.bundle 安装 + 对齐 dsh 0.1.0-rc.8）
