@@ -22,42 +22,48 @@
 
 ## 🚀 安装
 
-### 方式一：npm（推荐）
+项目通过 **`dsh.bundle`** 机制安装：npm 包自带的 `cordis.patch.yml` 会在
+`dsh plugin add` 后自动挂载 `dsh-notify` 入口，**不需要**再手动 `- insert:`。
 
 ```powershell
 dsh plugin --profile web add dsh-notify-windows
 ```
 
-然后在 profile 的 `cordis.patch.yml` 中追加条目（该文件被运行中的 DSH 热监视，改动立即生效，无需重启）：
-
-```yaml
-- insert:
-    - id: dsh-notify
-      name: 'dsh-notify-windows'
-      config:
-        enabled: true
-        reasons: [completed, error, max-tokens]
-        includeSubagents: false
-        notifyOnStart: true
-        notifyOnApproval: true
-        notifyOnAskUser: true
-        appName: 'DeepSeek Harness'
-        aumid: 'DeepSeekHarness.Notify'
-        log: true
-        debug: false
-```
-
-### 方式二：源码安装
+重启 DSH 并刷新浏览器后生效：
 
 ```powershell
-git clone git@github.com:SeverusZh/dsh-notify-windows.git
-cd dsh-notify-windows
-pwsh scripts\install-profile.ps1 -Profile web
+dsh --profile web
 ```
 
-脚本会把插件部署到 profile 的 hoisted `node_modules`（目录名 `dsh-notify-windows-<版本>`，重新部署时更换目录名，让运行中的宿主热加载新代码而无需重启），并幂等地写入上面的 patch 条目。
+> 注意：不要再用 `- insert:` 手动添加 `dsh-notify`，否则启动会报
+> `duplicate loader entry id: dsh-notify`。想调整配置，在 profile 的
+> `cordis.patch.yml` 里按 id 覆盖即可（见下节）。
+
+### 更新 / 卸载
+
+```powershell
+dsh plugin --profile web update dsh-notify-windows
+dsh plugin --profile web remove dsh-notify-windows
+```
+
+更新后需重启 DSH 宿主（新增 bundle 层需要重新启动）。
 
 ## ⚙️ 配置项
+
+插件行 `config` 全字段可选，未填按默认值。需要调整时，在
+`$DSH_HOME/profiles/web/cordis.patch.yml` 里按 id 覆盖主条目即可
+（该文件被运行中的 DSH 热监视，改动立即生效，无需重启）：
+
+```yaml
+- id: dsh-notify
+  name: dsh-notify-windows
+  config:
+    enabled: true
+    reasons: [completed, error, max-tokens]
+    notifyOnStart: true
+    notifyOnApproval: true
+    log: true
+```
 
 | 配置 | 默认值 | 说明 |
 | --- | --- | --- |
@@ -97,7 +103,7 @@ node scripts\smoke-test.mjs
 - **收不到通知？** 检查 Windows「通知与操作」设置是否允许该应用显示通知，以及「专注助手」是否开启；首次发送会自动注册 AUMID。
 - **/goal 模式会提醒吗？** 默认不会：自动推进的中间回合保持静默，只有目标完成（或阻塞）的最终回合才提醒；如需每个回合都提醒，把 `notifyOnGoalRounds` 设为 `true`。
 - **为什么审批提醒有时不弹？** 会话审批策略为 `never` 时审批会被自动拒绝、不会等待，插件会跳过提醒；策略为 `ask` 时才提醒。
-- **更新插件代码后如何热更新？** 重新执行安装脚本（版本目录名变化即热加载）；用 npm 安装时执行 `dsh plugin --profile web update dsh-notify-windows` 后重启宿主。
+- **更新插件代码后如何生效？** 执行 `dsh plugin --profile web update dsh-notify-windows` 后重启 DSH 宿主。
 
 ## 📄 许可证
 

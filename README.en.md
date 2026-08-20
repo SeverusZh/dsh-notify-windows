@@ -22,42 +22,48 @@
 
 ## 🚀 Install
 
-### Option A: npm (recommended)
+The plugin installs through the **`dsh.bundle`** mechanism: the npm package ships its own
+`cordis.patch.yml`, and after `dsh plugin add` it auto-mounts the `dsh-notify` entry — no
+manual `- insert:` needed.
 
 ```powershell
 dsh plugin --profile web add dsh-notify-windows
 ```
 
-Then add this entry to the profile's `cordis.patch.yml` (the running host hot-applies it — no restart needed):
-
-```yaml
-- insert:
-    - id: dsh-notify
-      name: 'dsh-notify-windows'
-      config:
-        enabled: true
-        reasons: [completed, error, max-tokens]
-        includeSubagents: false
-        notifyOnStart: true
-        notifyOnApproval: true
-        notifyOnAskUser: true
-        appName: 'DeepSeek Harness'
-        aumid: 'DeepSeekHarness.Notify'
-        log: true
-        debug: false
-```
-
-### Option B: from source
+Restart DSH and refresh the browser:
 
 ```powershell
-git clone git@github.com:SeverusZh/dsh-notify-windows.git
-cd dsh-notify-windows
-pwsh scripts\install-profile.ps1 -Profile web
+dsh --profile web
 ```
 
-The script deploys the package into the profile's hoisted `node_modules` as `dsh-notify-windows-<version>` — the versioned directory lets a running host hot-load a redeploy without a restart — and writes the patch entry above idempotently.
+> Note: don't hand-add `- insert:` with `dsh-notify` anymore — DSH would fail to boot with
+> `duplicate loader entry id: dsh-notify`. To tweak settings, override the entry by id in the
+> profile's `cordis.patch.yml` (see below).
+
+### Update / Remove
+
+```powershell
+dsh plugin --profile web update dsh-notify-windows
+dsh plugin --profile web remove dsh-notify-windows
+```
+
+Restart the DSH host after updating (a newly added bundle layer needs a boot).
 
 ## ⚙️ Configuration
+
+All `config` keys are optional and default in the plugin. To override, target the entry by id
+in `$DSH_HOME/profiles/web/cordis.patch.yml` (hot-applied by the running host — no restart):
+
+```yaml
+- id: dsh-notify
+  name: dsh-notify-windows
+  config:
+    enabled: true
+    reasons: [completed, error, max-tokens]
+    notifyOnStart: true
+    notifyOnApproval: true
+    log: true
+```
 
 | Key | Default | Meaning |
 | --- | --- | --- |
@@ -97,7 +103,7 @@ Runs the plugin on a bare cordis Context with synthetic events: three test toast
 - **No toast?** Check Windows notification settings for this app and Focus Assist; the AUMID registers itself on first use.
 - **Do /goal rounds toast?** Not by default: auto-continuation rounds stay quiet and only the final round that completes (or blocks) the goal toasts. Set `notifyOnGoalRounds` to `true` to hear every round.
 - **Approval toasts missing?** Sessions whose approval policy is `never` auto-reject — nothing waits, so the plugin stays quiet. Only `ask`-policy sessions notify.
-- **Hot-update after code changes?** Re-run the install script (the versioned directory name busts the module cache); for npm installs run `dsh plugin --profile web update dsh-notify-windows` and restart the host.
+- **Hot-update after code changes?** Run `dsh plugin --profile web update dsh-notify-windows`, then restart the DSH host.
 
 ## 📄 License
 

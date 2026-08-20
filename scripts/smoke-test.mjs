@@ -1,15 +1,47 @@
-// Smoke test for dsh-notify-windows v0.5.0: applies the plugin to a bare cordis
-// Context and feeds it synthetic session events. Expected: four real Windows
-// toasts (completion with excerpt, goal-final completion, approval, question)
-// plus filtered cases (subagent, never-policy, unrelated call, quiet goal
-// round).
-import { pathToFileURL } from "node:url";
+// Smoke test for dsh-notify-windows v0.6.0: applies the plugin to a bare cordis
+// Context and feeds it synthetic session events. Expected: real Windows toasts
+// for completion-with-excerpt, goal-final completion, approval, and two
+// question cases, plus filtered cases (subagent, depth-only subagent,
+// never-policy, unrelated call, quiet goal round).
+import { pathToFileURL, fileURLToPath } from "node:url";
 import { readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 
-const { Context } = await import(pathToFileURL("E:/DeepSeekHarness/node_modules/@deepseek-ai/cordis/lib/index.js").href);
-const { default: dshNotify } = await import(pathToFileURL("E:/MyProjectCollection/dsh-notify-windows/lib/index.js").href);
+// Locate the plugin's own lib/index.js next to this script's repo root.
+const here = dirname(fileURLToPath(import.meta.url));
+const pluginRoot = join(here, "..");
+
+// The DSH install root that provides @deepseek-ai/cordis.
+// Override with DSH_HARNESS_DIR when the harness lives elsewhere.
+const harnessDir = process.env.DSH_HARNESS_DIR ?? "D:/DeepSeekHarness";
+
+async function importCordis(path) {
+  try {
+    return await import(pathToFileURL(path).href);
+  } catch {
+    return null;
+  }
+}
+
+// Try the direct hoisted path first, then a pnpm-store scan.
+let cordis = await importCordis(join(harnessDir, "node_modules/@deepseek-ai/cordis/lib/index.js"));
+if (!cordis) {
+  const { readdirSync } = await import("node:fs");
+  const store = join(harnessDir, "node_modules/.pnpm");
+  let entry;
+  try {
+    entry = readdirSync(store).find((name) => name.startsWith("@deepseek-ai+cordis@"));
+  } catch {
+    entry = undefined;
+  }
+  if (!entry) throw new Error("cannot locate @deepseek-ai/cordis under " + harnessDir);
+  cordis = await import(pathToFileURL(join(store, entry, "node_modules/@deepseek-ai/cordis/lib/index.js")).href);
+}
+const { Context } = cordis;
+
+const pluginUrl = pathToFileURL(join(pluginRoot, "lib/index.js")).href;
+const { apply: dshNotify } = await import(pluginUrl);
 
 const logPath = join(tmpdir(), "dsh-notify", "notify.log");
 
@@ -35,8 +67,12 @@ mainSession.events.push(turnEnd(1, "completed"));
 ctx.emit("session/event", mainSession, mainSession.events[mainSession.events.length - 1]);
 
 // 2) subagent session -> filtered
-const subSession = { id: "smoke-sub", header: { origin: "subagent", depth: 1 }, events: [] };
+const subSession = { id: "smoke-sub", header: { origin: "subagent", delegationDepth: 1 }, events: [] };
 ctx.emit("session/event", subSession, ev("turn/end", { turn: 1, reason: { kind: "completed" } }));
+
+// 2b) depth-only subagent (no origin) -> filtered via delegationDepth
+const depthSubSession = { id: "smoke-depth-sub", header: { delegationDepth: 2 }, events: [] };
+ctx.emit("session/event", depthSubSession, ev("turn/end", { turn: 1, reason: { kind: "completed" } }));
 
 // 3) quiet goal round (goal continuation, no terminal goal/change) -> filtered
 const goalQuiet = { id: "smoke-goal-quiet", header: {}, events: [] };
@@ -84,7 +120,8 @@ const count = (kind) => entries.filter((e) => e.event === kind).length;
 const completedNotifies = entries.filter((e) => e.event === "notify");
 const excerptOk = completedNotifies.some((e) => (e.body ?? "").includes("插件已构建完成"));
 const goalQuietOk = !entries.some((e) => e.sessionId === "smoke-goal-quiet");
-const ok = count("notify") === 2 && count("approval") === 1 && count("ask-user") === 2 && count("error") === 0 && excerptOk && goalQuietOk;
-console.log("[smoke] notify=" + count("notify") + " approval=" + count("approval") + " ask-user=" + count("ask-user") + " error=" + count("error") + " excerptOk=" + excerptOk + " goalQuietOk=" + goalQuietOk);
+const depthSubFiltered = !entries.some((e) => e.sessionId === "smoke-depth-sub");
+const ok = count("notify") === 2 && count("approval") === 1 && count("ask-user") === 2 && count("error") === 0 && excerptOk && goalQuietOk && depthSubFiltered;
+console.log("[smoke] notify=" + count("notify") + " approval=" + count("approval") + " ask-user=" + count("ask-user") + " error=" + count("error") + " excerptOk=" + excerptOk + " goalQuietOk=" + goalQuietOk + " depthSubFiltered=" + depthSubFiltered);
 console.log("[smoke] " + (ok ? "PASS" : "FAIL"));
 if (!ok) process.exitCode = 1;

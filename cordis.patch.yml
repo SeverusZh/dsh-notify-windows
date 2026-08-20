@@ -1,0 +1,14 @@
+# dsh-notify-windows bundle patch.
+#
+# Declares the plugin's single loader entry. The `insert:` rows live in the
+# package's own patch file, so `dsh plugin add dsh-notify-windows` auto-mounts
+# the entry — no manual `- insert:` in the profile's cordis.patch.yml.
+# The `name` (a bare package specifier) resolves to this package's
+# `main`/`exports["."]` (lib/index.js) via the loader's two-anchor resolution
+# (dsh install first, then the profile's node_modules).
+#
+# Install: dsh plugin --profile <name> add dsh-notify-windows
+# Restart `dsh --profile <name>` after installing.
+- insert:
+    - id: dsh-notify
+      name: dsh-notify-windows
