@@ -2,6 +2,17 @@
 
 本项目遵循 [Semantic Versioning](https://semver.org/)。
 
+## [0.7.1] - 2026-08-27
+
+### 修复：支持 DSH 部署在 WSL 中时发送通知
+
+- 之前通知通道唯一依赖 `powershell.exe -File <notify.ps1>`，而 DSH 跑在 WSL 里时该脚本路径为
+  Linux 形式（如 `/home/.../notify.ps1`），Windows 侧 PowerShell 无法识别，导致通知静默失败。
+- **修复**：新增 `winPath()`，在 WSL 下用 `wslpath -w` 将脚本路径转为 Windows 可读的
+  `\\wsl.localhost\...` UNC 路径后传给 `-File`。
+- **原生 Windows 不受影响**：`wslpath` 在原生 Windows 上不存在，`winPath()` 会原样返回
+  原始路径，行为与旧版完全一致。
+
 ## [0.7.0] - 2026-08-20
 
 ### 新增「点击通知跳转」功能
