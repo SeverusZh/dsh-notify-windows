@@ -2,6 +2,17 @@
 
 本项目遵循 [Semantic Versioning](https://semver.org/)。
 
+## [0.7.3] - 2026-08-28
+
+### 修复：重启后主会话被误判为子代理，通知全部失效
+
+- **根因**：DSH 持久化会话记录时写入 `delegationDepth ?? 0`，重启恢复后主会话的
+  header 也带 `delegationDepth: 0`；旧过滤逻辑 `delegationDepth !== undefined`
+  把「带该字段」当作子代理，导致每次 `dsh web` 重启后所有主会话的通知被静默过滤。
+- **修复**：子代理判定改为 `(delegationDepth ?? 0) > 0`（主会话为 0，子代理 ≥ 1），
+  重启后通知恢复正常。
+- 冒烟测试新增回归用例：`delegationDepth: 0` 的恢复主会话必须弹通知，深度 ≥ 1 仍过滤。
+
 ## [0.7.2] - 2026-08-28
 
 ### 修复：WSL 下通知失败被静默吞掉 + 通知通道自检

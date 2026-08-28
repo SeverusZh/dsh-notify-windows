@@ -74,6 +74,17 @@ ctx.emit("session/event", subSession, ev("turn/end", { turn: 1, reason: { kind: 
 const depthSubSession = { id: "smoke-depth-sub", header: { delegationDepth: 2 }, events: [] };
 ctx.emit("session/event", depthSubSession, ev("turn/end", { turn: 1, reason: { kind: "completed" } }));
 
+// 2c) RESTORED main session (delegationDepth: 0 — DSH persists `?? 0` and
+// rehydrates it on restart) -> NOT filtered, must toast. Regression test for
+// the bug where `delegationDepth !== undefined` killed all notifications
+// after a dsh web restart.
+const restoredMain = { id: "smoke-restored-main", header: { delegationDepth: 0 }, events: [] };
+restoredMain.events.push(ev("turn/start", { turn: 1 }));
+restoredMain.events.push(ev("user/message", { id: "r1", role: "user", content: [{ type: "text", text: "重启后继续" }], source: { kind: "user" } }));
+restoredMain.events.push(asst(1, "重启后通知恢复。"));
+restoredMain.events.push(turnEnd(1, "completed"));
+ctx.emit("session/event", restoredMain, restoredMain.events[restoredMain.events.length - 1]);
+
 // 3) quiet goal round (goal continuation, no terminal goal/change) -> filtered
 const goalQuiet = { id: "smoke-goal-quiet", header: {}, events: [] };
 goalQuiet.events.push(ev("turn/start", { turn: 5 }));
@@ -121,7 +132,8 @@ const completedNotifies = entries.filter((e) => e.event === "notify");
 const excerptOk = completedNotifies.some((e) => (e.body ?? "").includes("插件已构建完成"));
 const goalQuietOk = !entries.some((e) => e.sessionId === "smoke-goal-quiet");
 const depthSubFiltered = !entries.some((e) => e.sessionId === "smoke-depth-sub");
-const ok = count("notify") === 2 && count("approval") === 1 && count("ask-user") === 2 && count("error") === 0 && excerptOk && goalQuietOk && depthSubFiltered;
-console.log("[smoke] notify=" + count("notify") + " approval=" + count("approval") + " ask-user=" + count("ask-user") + " error=" + count("error") + " excerptOk=" + excerptOk + " goalQuietOk=" + goalQuietOk + " depthSubFiltered=" + depthSubFiltered);
+const restoredMainNotified = entries.some((e) => e.sessionId === "smoke-restored-main" && e.event === "notify");
+const ok = count("notify") === 3 && count("approval") === 1 && count("ask-user") === 2 && count("error") === 0 && excerptOk && goalQuietOk && depthSubFiltered && restoredMainNotified;
+console.log("[smoke] notify=" + count("notify") + " approval=" + count("approval") + " ask-user=" + count("ask-user") + " error=" + count("error") + " excerptOk=" + excerptOk + " goalQuietOk=" + goalQuietOk + " depthSubFiltered=" + depthSubFiltered + " restoredMainNotified=" + restoredMainNotified);
 console.log("[smoke] " + (ok ? "PASS" : "FAIL"));
 if (!ok) process.exitCode = 1;
