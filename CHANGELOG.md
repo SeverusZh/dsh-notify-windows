@@ -2,6 +2,21 @@
 
 本项目遵循 [Semantic Versioning](https://semver.org/)。
 
+## [0.7.2] - 2026-08-28
+
+### 修复：WSL 下通知失败被静默吞掉 + 通知通道自检
+
+- **静默失败检测**：PowerShell 5.1 在 `-File` 无法加载脚本时仍以退出码 0 退出（例如路径
+  未转换成功时），旧版只检查退出码，失败完全无痕。现在捕获 stdout/stderr，以
+  notify.ps1 输出的 `toast shown` 作为成功标记，失败时记录详细输出并告警。
+- **powershell.exe 解析不再只依赖 PATH**：WSL 下若 DSH 由 systemd / cron / ssh 等
+  最小 PATH 环境启动，`spawn("powershell.exe")` 会 ENOENT 失败。现在优先使用
+  `/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe`（WSL 标准位置），
+  原生 Windows 回退到 PATH 查找，行为不变。
+- **启动自检**：插件启动时校验 notify.ps1 与 powershell.exe 是否可达，通道不可用时
+  立即告警，不再等任务结束才发现通知发不出去。
+- `wslpath` 转换结果缓存（NOTIFY_SCRIPT 恒定，不再每次 toast 同步转换）。
+
 ## [0.7.1] - 2026-08-27
 
 ### 修复：支持 DSH 部署在 WSL 中时发送通知

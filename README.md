@@ -119,7 +119,8 @@ node scripts\smoke-test.mjs
 
 ## ❓ 常见问题
 
-- **收不到通知？** 检查 Windows「通知与操作」设置是否允许该应用显示通知，以及「专注助手」是否开启；首次发送会自动注册 AUMID。
+- **收不到通知？** 检查 Windows「通知与操作」设置是否允许该应用显示通知，以及「专注助手」是否开启；首次发送会自动注册 AUMID。插件启动时会自检通知通道（`powershell.exe` 与 `notify.ps1` 是否可达），通道不可用会在 DSH 日志中立即告警；每次发送失败也会记录详细原因到 `%TEMP%\dsh-notify\notify.log`。
+- **WSL 下收不到通知？** 插件会自动用 `wslpath -w` 把脚本路径转成 `\\wsl.localhost\...` UNC 路径，并优先通过 `/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe` 调用 PowerShell（不依赖 PATH，systemd / cron 等最小环境也能工作）。若仍失败，查看 `%TEMP%\dsh-notify\notify.log` 中的 `error` 条目。
 - **/goal 模式会提醒吗？** 默认不会：自动推进的中间回合保持静默，只有目标完成（或阻塞）的最终回合才提醒；如需每个回合都提醒，把 `notifyOnGoalRounds` 设为 `true`。
 - **为什么审批提醒有时不弹？** 会话审批策略为 `never` 时审批会被自动拒绝、不会等待，插件会跳过提醒；策略为 `ask` 时才提醒。
 - **更新插件代码后如何生效？** 执行 `dsh plugin --profile web update dsh-notify-windows` 后重启 DSH 宿主。
