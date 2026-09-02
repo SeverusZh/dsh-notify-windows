@@ -2,6 +2,35 @@
 
 本项目遵循 [Semantic Versioning](https://semver.org/)。
 
+## [Unreleased]
+
+### 兼容：DSH 0.1.2-alpha.4
+
+- **peerDependencies**：`@deepseek-ai/cordis` `^4.0.1` → `^4.0.2`（alpha.4
+  各包一致声明的版本）。
+- **真实-Cordis 探针**：新增 `test/probe.test.mjs`（devDependency
+  `@deepseek-ai/cordis ^4.0.2`，`--legacy-peer-deps` 安装），在真实 Context 上
+  挂载插件，按 harness-src @ 0.1.2-alpha.4 核实的会话事件字形合成 session
+  stub 并经 `session/event` 火线派发，断言 JSONL 日志（
+  `<tmpdir>/dsh-notify/notify.log`）的 notify / approval / ask-user 行与
+  过滤行为：
+  - turn/end completed → notify（标题/轮次/截断摘要）；原因不在 `reasons`
+    内不通知；
+  - 子代理过滤：`delegationDepth ≥ 1` / `header.origin === 'subagent'`
+    过滤，恢复主会话（深度 0）通知；`includeSubagents: true` 放行；
+  - approval/asked：`approval/policy` 为 `ask` 时通知、`never` 时抑制；
+  - goal 轮静默：`user/message` source.kind `goal` + round > 0 时仅终态
+    （`goal/change` operation `complete`）通知，非终态（`edit`）抑制；
+  - ask_user_question 直接调用与 run_code 内嵌调用均提取问题文本。
+- **脚本**：`npm test` = `node --test "test/*.test.mjs"`（显式限定 `test/`
+  目录，避免 `node --test` 默认 glob 误拾取面向 Windows 宿主手工运行的
+  `scripts/smoke-test.mjs`）。
+- **事件字形核对结论**：`0.1.0-rc.8` → `0.1.2-alpha.4` 中插件消费的所有
+  会话事件字段（turn/end reason kinds、user/message source、goal/change
+  operation、approval/asked、approval/policy、tool/call、session.header）
+  无变化；`ctx.sessionTitle.get(session).title` 与 `ctx.webServer.port`
+  亦保留——lib/index.js 无需改码，探针作为兼容契约锚点锁定。
+
 ## [0.7.3] - 2026-08-28
 
 ### 修复：重启后主会话被误判为子代理，通知全部失效
