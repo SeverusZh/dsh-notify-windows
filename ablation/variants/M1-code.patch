@@ -1,0 +1,43 @@
+diff --git a/lib/index.js b/lib/index.js
+index f688539..22843f8 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -289,38 +289,6 @@ export const apply = (ctx, config = {}) => {
+     }
+     if (isFilteredSession(session)) return;
+ 
+-    if (event.type === "turn/end") {
+-      const reason = event.data?.reason;
+-      if (typeof reason?.kind !== "string" || !reasons.has(reason.kind)) return;
+-      const window = turnWindow(session, event);
+-
+-      // /goal 自动推进回合默认静默：仅在目标完成/阻塞的最终回合提醒。
+-      if (!cfg.notifyOnGoalRounds) {
+-        const isGoalRound = window.userSource?.kind === "goal" && window.userSource.round > 0;
+-        const terminal = window.goalOps.some((op) => op === "complete" || op === "block");
+-        if (isGoalRound && !terminal) return;
+-      }
+-
+-      const title = titleFor(session) || cfg.appName;
+-      let body = REASON_TEXT[reason.kind] ?? "任务已结束";
+-      if (Number.isInteger(event.data.turn)) body += "（第 " + event.data.turn + " 轮）";
+-      if (cfg.excerpt && window.lastAssistantText) {
+-        body += "\n" + truncate(window.lastAssistantText, cfg.excerptMaxChars);
+-      }
+-      sendToast(title, body, { sessionId: session?.id });
+-      const url = cfg.openOnClick && session?.id ? conversationUrl(session?.id) : undefined;
+-      log({
+-        event: "notify",
+-        sessionId: session?.id,
+-        reason: reason.kind,
+-        turn: event.data?.turn,
+-        title,
+-        body,
+-        ...(url ? { url } : {}),
+-      });
+-      return;
+-    }
+-
+     if (event.type === "approval/asked" && cfg.notifyOnApproval) {
+       // Never notify when the session policy auto-rejects: nothing waits for
+       // the user, so a toast would be noise.

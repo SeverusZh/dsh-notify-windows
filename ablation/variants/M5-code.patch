@@ -1,0 +1,59 @@
+diff --git a/lib/index.js b/lib/index.js
+index f688539..bb00d20 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -217,10 +217,6 @@ export const apply = (ctx, config = {}) => {
+       cfg.appName,
+     ];
+     const sessionId = opts?.sessionId;
+-    if (cfg.openOnClick && sessionId) {
+-      const url = conversationUrl(sessionId);
+-      args.push("-Url", url, "-LaunchProtocol", cfg.preferExisting ? 1 : 0);
+-    }
+     // Capture output: PowerShell 5.1 exits 0 even when -File cannot load the
+     // script (e.g. a Linux path that was never converted), so the exit code
+     // alone cannot tell success from failure. notify.ps1 prints "toast shown"
+@@ -308,7 +304,6 @@ export const apply = (ctx, config = {}) => {
+         body += "\n" + truncate(window.lastAssistantText, cfg.excerptMaxChars);
+       }
+       sendToast(title, body, { sessionId: session?.id });
+-      const url = cfg.openOnClick && session?.id ? conversationUrl(session?.id) : undefined;
+       log({
+         event: "notify",
+         sessionId: session?.id,
+@@ -316,7 +311,6 @@ export const apply = (ctx, config = {}) => {
+         turn: event.data?.turn,
+         title,
+         body,
+-        ...(url ? { url } : {}),
+       });
+       return;
+     }
+@@ -332,14 +326,12 @@ export const apply = (ctx, config = {}) => {
+           : "工具 " + data.toolName)
+         : "有一项操作等待你的批准";
+       sendToast(cfg.appName + " · 需要审批", body, { sessionId: session?.id });
+-      const url = cfg.openOnClick && session?.id ? conversationUrl(session?.id) : undefined;
+       log({
+         event: "approval",
+         sessionId: session?.id,
+         id: data.id,
+         toolName: data.toolName,
+         reason: data.reason,
+-        ...(url ? { url } : {}),
+       });
+       return;
+     }
+@@ -354,12 +346,10 @@ export const apply = (ctx, config = {}) => {
+       }
+       if (question !== undefined || data.name === "ask_user_question") {
+         sendToast(cfg.appName + " · 需要回答", question ? truncate(question, 100) : "Agent 正在等待你的确认", { sessionId: session?.id });
+-        const url = cfg.openOnClick && session?.id ? conversationUrl(session?.id) : undefined;
+         log({
+           event: "ask-user",
+           sessionId: session?.id,
+           question: question ?? null,
+-          ...(url ? { url } : {}),
+         });
+       }
+       return;

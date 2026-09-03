@@ -1,0 +1,31 @@
+diff --git a/lib/index.js b/lib/index.js
+index f688539..f45c2f8 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -344,26 +344,6 @@ export const apply = (ctx, config = {}) => {
+       return;
+     }
+ 
+-    if (event.type === "tool/call" && cfg.notifyOnAskUser) {
+-      const data = event.data ?? {};
+-      let question;
+-      if (data.name === "ask_user_question") {
+-        question = extractAskQuestion(data.arguments);
+-      } else if (data.name === "run_code" && typeof data.arguments === "string" && data.arguments.includes("ask_user_question")) {
+-        question = extractQuestionFromCode(data.arguments);
+-      }
+-      if (question !== undefined || data.name === "ask_user_question") {
+-        sendToast(cfg.appName + " · 需要回答", question ? truncate(question, 100) : "Agent 正在等待你的确认", { sessionId: session?.id });
+-        const url = cfg.openOnClick && session?.id ? conversationUrl(session?.id) : undefined;
+-        log({
+-          event: "ask-user",
+-          sessionId: session?.id,
+-          question: question ?? null,
+-          ...(url ? { url } : {}),
+-        });
+-      }
+-      return;
+-    }
+   });
+ 
+   // Startup self-check: if the notification channel is broken (powershell.exe

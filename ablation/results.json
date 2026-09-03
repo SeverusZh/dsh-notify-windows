@@ -1,0 +1,144 @@
+[
+  {
+    "variant": "M1-config",
+    "loadOk": true,
+    "checks": {
+      "notify(main)": "ok",
+      "approval(ask)": "ok",
+      "ask-user": "ok"
+    },
+    "pass": true,
+    "note": "reasons=[] → turn/end 全部 reason 不通知"
+  },
+  {
+    "variant": "M2-config",
+    "loadOk": true,
+    "checks": {
+      "notify(main)": "ok",
+      "approval(ask)": "ok",
+      "ask-user": "ok"
+    },
+    "pass": true,
+    "note": "notifyOnApproval=false → 审批不通知"
+  },
+  {
+    "variant": "M3-config",
+    "loadOk": true,
+    "checks": {
+      "notify(main)": "ok",
+      "approval(ask)": "ok",
+      "ask-user": "ok"
+    },
+    "pass": true,
+    "note": "notifyOnAskUser=false → 提问不通知"
+  },
+  {
+    "variant": "M4-config",
+    "loadOk": true,
+    "checks": {
+      "notify(main)": "ok",
+      "no-excerpt": "ok"
+    },
+    "pass": true,
+    "note": "excerpt=false → notify 行 body 不含摘录"
+  },
+  {
+    "variant": "M5-config",
+    "loadOk": true,
+    "checks": {
+      "notify(main)": "ok",
+      "no-url": "ok"
+    },
+    "pass": true,
+    "note": "openOnClick=false → notify 行无 url 字段"
+  },
+  {
+    "variant": "M6-config",
+    "loadOk": true,
+    "checks": {
+      "goal-quiet-ablated": "ok"
+    },
+    "pass": true,
+    "note": "notifyOnGoalRounds=true → 消融 goal 静默，非终态 goal 轮也通知"
+  },
+  {
+    "variant": "M7-config",
+    "loadOk": true,
+    "checks": {
+      "subagent-notify": "ok"
+    },
+    "pass": true,
+    "note": "includeSubagents=true → 消融子代理过滤，子代理会话也通知"
+  },
+  {
+    "variant": "M8-config",
+    "loadOk": true,
+    "checks": {
+      "start-toast": "ok"
+    },
+    "pass": true,
+    "note": "notifyOnStart=false → 无激活 toast（默认即 false，验证无副作用）"
+  },
+  {
+    "variant": "M9-config",
+    "loadOk": true,
+    "checks": {
+      "no-log": "ok"
+    },
+    "pass": true,
+    "note": "log=false → 消融日志，无任何日志行"
+  },
+  {
+    "variant": "M1-code",
+    "loadOk": true,
+    "checks": {
+      "notify(main)": "ok",
+      "approval(ask)": "ok",
+      "ask-user": "ok"
+    },
+    "pass": true,
+    "note": "移除 turn/end 分支 → 完成不通知，其余保留"
+  },
+  {
+    "variant": "M2-code",
+    "loadOk": true,
+    "checks": {
+      "notify(main)": "ok",
+      "approval(ask)": "ok",
+      "ask-user": "ok"
+    },
+    "pass": true,
+    "note": "移除 approval/asked 分支 → 审批不通知，其余保留"
+  },
+  {
+    "variant": "M3-code",
+    "loadOk": true,
+    "checks": {
+      "notify(main)": "ok",
+      "approval(ask)": "ok",
+      "ask-user": "ok"
+    },
+    "pass": true,
+    "note": "移除 tool/call 分支 → 提问不通知，其余保留"
+  },
+  {
+    "variant": "M4-code",
+    "loadOk": true,
+    "checks": {
+      "notify(main)": "ok",
+      "no-excerpt": "ok"
+    },
+    "pass": true,
+    "note": "移除 excerpt 逻辑 → notify 行 body 不含摘录"
+  },
+  {
+    "variant": "M5-code",
+    "loadOk": true,
+    "checks": {
+      "notify(main)": "ok",
+      "no-url": "ok"
+    },
+    "pass": true,
+    "note": "移除 openOnClick 逻辑 → notify 行无 url 字段"
+  }
+]

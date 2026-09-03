@@ -1,0 +1,34 @@
+diff --git a/lib/index.js b/lib/index.js
+index f688539..1dbded2 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -321,29 +321,6 @@ export const apply = (ctx, config = {}) => {
+       return;
+     }
+ 
+-    if (event.type === "approval/asked" && cfg.notifyOnApproval) {
+-      // Never notify when the session policy auto-rejects: nothing waits for
+-      // the user, so a toast would be noise.
+-      if (effectivePolicy(session) === "never") return;
+-      const data = event.data ?? {};
+-      const body = typeof data.toolName === "string"
+-        ? (typeof data.reason === "string" && data.reason.length > 0
+-          ? "工具 " + data.toolName + "：" + truncate(data.reason, 100)
+-          : "工具 " + data.toolName)
+-        : "有一项操作等待你的批准";
+-      sendToast(cfg.appName + " · 需要审批", body, { sessionId: session?.id });
+-      const url = cfg.openOnClick && session?.id ? conversationUrl(session?.id) : undefined;
+-      log({
+-        event: "approval",
+-        sessionId: session?.id,
+-        id: data.id,
+-        toolName: data.toolName,
+-        reason: data.reason,
+-        ...(url ? { url } : {}),
+-      });
+-      return;
+-    }
+-
+     if (event.type === "tool/call" && cfg.notifyOnAskUser) {
+       const data = event.data ?? {};
+       let question;
