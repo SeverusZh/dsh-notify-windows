@@ -2,7 +2,7 @@
 
 本项目遵循 [Semantic Versioning](https://semver.org/)。
 
-## [Unreleased]
+## [0.7.4] - 2026-09-04
 
 ### 兼容：DSH 0.1.2-alpha.4
 

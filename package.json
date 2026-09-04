@@ -1,6 +1,6 @@
 {
   "name": "dsh-notify-windows",
-  "version": "0.7.4-beta.0",
+  "version": "0.7.4",
   "description": "DeepSeek Harness (DSH) 插件：任务完成 / 等待审批 / 等待回答时发送 Windows 系统桌面通知",
   "repository": {
     "type": "git",

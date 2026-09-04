@@ -7,9 +7,12 @@
   <img src="https://img.shields.io/github/license/SeverusZh/dsh-notify-windows" alt="license">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-blue" alt="platform">
   <img src="https://img.shields.io/github/stars/SeverusZh/dsh-notify-windows?style=social" alt="stars">
+  <img src="https://img.shields.io/badge/DeepSeek%20Harness-0.1.2--alpha.4-blue" alt="dsh">
 </p>
 
 **任务完成** ✅ ｜ **等待审批** 🔐 ｜ **等待回答** ❓ —— 离开屏幕也不错过任何需要你处理的事。
+
+> **兼容性**：v0.7.4 支持 DSH **0.1.2-alpha.4+**（真实-Cordis 探针 7/7 通过；peer `@deepseek-ai/cordis ^4.0.2`）。旧版 DSH（0.1.0-rc.8 及更早）请使用最后兼容的 npm 版本 **0.7.3**。
 
 ## ✨ 功能
 
