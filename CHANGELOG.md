@@ -2,6 +2,37 @@
 
 本项目遵循 [Semantic Versioning](https://semver.org/)。
 
+## [0.7.5] - 2026-09-20
+
+### 修复：适配 DSH 0.1.5 移除的 `session.events`（改用 `snapshotEvents()`）
+
+- **根因**：DSH **0.1.5+** 移除了 `Session` 的公开 `events` 属性，历史事件改为按需读取
+  `snapshotEvents(fromSeq?, toSeqExclusive?)`（返回 `readonly SessionEvent[]`）。插件旧代码
+  在两处读取 `session?.events ?? []`：
+  - `turnWindow()`（通知摘要 / `/goal` 轮次识别）；
+  - `effectivePolicy()`（审批策略读取）。
+
+  该属性恒为 `undefined`，`?? []` 兜底后**静默降级**（不报错但功能失效）：通知摘要
+  （excerpt）为空、`userSource` 恒 `undefined` 导致 `/goal` 中间回合静默失效、审批策略恒
+  读不到导致 `never` 策略下仍发多余审批提醒。
+- **修复**：新增 `sessionEvents(session)` 辅助函数，统一两处历史读取：
+  - **优先旧 API** `session.events`（`Array.isArray` 命中）——保持对旧版 DSH 的兼容；
+  - **回退新 API** `session.snapshotEvents()`（本机 0.1.5-rc.1 核实的契约即直接返回
+    `readonly SessionEvent[]`）；
+  - 全程 `try/catch` 容错：`snapshotEvents()` 抛错时返回 `[]`，**历史读取异常绝不打断通知路径**。
+- **兼容范围**：在 **DSH 0.1.5-rc.1** 实测加载并核对 API 契约；旧版 DSH（`session.events`
+  仍在）走旧分支，行为不变。
+- **测试**：`test/probe.test.mjs` 新增 `sessionEvents()` 三条路径（旧 API 命中 / 新 API 命中 /
+  都不可用返回 `[]` / `snapshotEvents` 抛错不崩）与「仅提供 `snapshotEvents()` 的 0.1.5 式
+  会话仍能生成摘要、`/goal` 终态判定与 `never` 策略抑制」的端到端用例。
+- **文档**：README FAQ 补两条升级指引——Issue #1（重启后通知静默，升级 0.7.4+）与本次
+  0.1.5 事件属性移除（升级 0.7.5+）。
+
+### 其它
+
+- `lib/index.js` 的 `VERSION` 常量此前停留在 `0.7.3`（发布 0.7.4 时漏改），本次一并更正为
+  `0.7.5`，与 `package.json` 一致。
+
 ## [0.7.4] - 2026-09-04
 
 ### 兼容：DSH 0.1.2-alpha.4
