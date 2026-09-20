@@ -11,6 +11,8 @@
 
 **Task finished** ✅ ｜ **Approval pending** 🔐 ｜ **Question pending** ❓ — never miss anything that needs you, even away from the screen.
 
+> **Compatibility**: v0.7.5 supports DSH **0.1.2-alpha.4+** and was verified against the `snapshotEvents()` contract on **0.1.5-rc.1** with the real-Cordis probe suite (14/14; peer `@deepseek-ai/cordis ^4.0.2`). Session history is read through both the legacy `session.events` (DSH <= 0.1.2-alpha.3) and `snapshotEvents()` (DSH 0.1.2-alpha.4+, where that property no longer exists), so excerpts, `/goal` round detection and approval-policy suppression work again after upgrading to 0.7.5. If you saw "all notifications went silent after a restart", upgrade to **0.7.3+**.
+
 ## ✨ Features
 
 - **Task completion** — listens to `turn/end` session events; toasts on completed / errored / max-tokens turns, with the session title and reason;
@@ -125,6 +127,8 @@ Runs the plugin on a bare cordis Context with synthetic events: three test toast
 - **No toast?** Check Windows notification settings for this app and Focus Assist; the AUMID registers itself on first use.
 - **Do /goal rounds toast?** Not by default: auto-continuation rounds stay quiet and only the final round that completes (or blocks) the goal toasts. Set `notifyOnGoalRounds` to `true` to hear every round.
 - **Approval toasts missing?** Sessions whose approval policy is `never` auto-reject — nothing waits, so the plugin stays quiet. Only `ask`-policy sessions notify.
+- **All notifications went silent after restarting DSH?** Fixed in **0.7.3**: the subagent check used to be `delegationDepth !== undefined`, which treated every restored main session (persisted with `delegationDepth: 0`) as a subagent and filtered it out. Upgrade to **0.7.3 or newer** (0.7.5 recommended), then restart the DSH host.
+- **Empty excerpts, /goal intermediate rounds toasting, approvals toasting under `never`?** The plugin read `session.events`, a property DSH stopped exposing in **0.1.2-alpha.4** (history moved to `snapshotEvents()`); **0.7.4 and earlier** silently degraded in that case. Upgrade to **0.7.5 or newer**. If `history-unavailable` still appears in `%TEMP%\dsh-notify\notify.log`, please attach the log.
 - **Hot-update after code changes?** Run `dsh plugin --profile web update dsh-notify-windows`, then restart the DSH host.
 
 ## 📄 License
