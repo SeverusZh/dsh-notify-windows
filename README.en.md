@@ -11,7 +11,7 @@
 
 **Task finished** ✅ ｜ **Approval pending** 🔐 ｜ **Question pending** ❓ — never miss anything that needs you, even away from the screen.
 
-> **Compatibility**: v0.7.5 supports DSH **0.1.2-alpha.4+** and was verified against the `snapshotEvents()` contract on **0.1.5-rc.1** with the real-Cordis probe suite (14/14; peer `@deepseek-ai/cordis ^4.0.2`). Session history is read through both the legacy `session.events` (DSH <= 0.1.2-alpha.3) and `snapshotEvents()` (DSH 0.1.2-alpha.4+, where that property no longer exists), so excerpts, `/goal` round detection and approval-policy suppression work again after upgrading to 0.7.5. If you saw "all notifications went silent after a restart", upgrade to **0.7.3+**.
+> **Compatibility**: v0.7.5 supports DSH **0.1.2-alpha.4+** and was verified against the `snapshotEvents()` contract on **0.1.5-rc.1** with the real-Cordis probe suite (15/15; peer `@deepseek-ai/cordis ^4.0.2`). Session history is read through both the legacy `session.events` (DSH <= 0.1.2-alpha.3) and `snapshotEvents()` (DSH 0.1.2-alpha.4+, where that property no longer exists), so excerpts, `/goal` round detection and approval-policy suppression work again after upgrading to 0.7.5. If you saw "all notifications went silent after a restart", upgrade to **0.7.3+**.
 
 ## ✨ Features
 

@@ -153,7 +153,7 @@ function emitSessionEvent(ctx, session, event) {
   ctx.emit(session, 'session/event', session, event)
 }
 
-/** 同上，但写入 0.1.5 式会话的私有日志（经 snapshotEvents() 暴露）。 */
+/** 同上，但写入 0.1.2-alpha.4+ 式会话的私有日志（经 snapshotEvents() 暴露）。 */
 function emitModernSessionEvent(ctx, session, event) {
   session._log.push(event)
   ctx.emit(session, 'session/event', session, event)
@@ -390,7 +390,7 @@ test('sessionEvents: 读取失败经 onUnavailable 上报（降级不再静默�
   assert.deepEqual(sessionEvents({ snapshotEvents: () => { throw new Error('host-side read failed') } }, report), [])
   assert.equal(seen.length, 2)
   assert.match(seen[0], /neither events nor snapshotEvents/)
-  assert.match(seen[1], /threw/)
+  assert.match(seen[1], /host-side read failed/)
   // 成功路径不得误报。
   let calls = 0
   sessionEvents({ events: [] }, () => { calls += 1 })
@@ -402,7 +402,7 @@ test('sessionEvents: 读取失败经 onUnavailable 上报（降级不再静默�
  * 0.1.2-alpha.4+ 式会话端到端：仅 snapshotEvents() 时功能不降级
  * ------------------------------------------------------------------ */
 
-test('probe: 0.1.5 式会话（仅 snapshotEvents()）— 摘要、/goal 终态、never 策略仍生效', async () => {
+test('probe: 0.1.2-alpha.4+ 式会话（仅 snapshotEvents()）— 摘要、/goal 终态、never 策略仍生效', async () => {
   clearLog()
   const ctx = await boot({ excerptMaxChars: 10 })
   try {
@@ -464,7 +464,33 @@ test('probe: snapshotEvents() 抛错时通知照发，并写 history-unavailable
     assert.equal(linesWith(lines, 'notify', session.id).length, 1, 'notification path must survive a read failure')
     const degraded = linesWith(lines, 'history-unavailable', session.id)
     assert.ok(degraded.length >= 1, 'a failed history read must be logged')
-    assert.match(degraded[0].reason, /threw/)
+    assert.match(degraded[0].reason, /host-side read failed/)
+  } finally {
+    await ctx.dispose?.()
+  }
+})
+
+test('probe: approval 路径读历史失败也留痕（锁定 effectivePolicy 回调接线）', async () => {
+  clearLog()
+  const ctx = await boot()
+  try {
+    // 只派发 approval/asked（不发 turn/end）：此时唯一的 history-unavailable 来源就是
+    // effectivePolicy —— 回调接线若丢失，本用例必须变红。
+    const session = makeModernSession({
+      snapshotEvents() {
+        throw new Error('host-side read failed')
+      },
+    })
+    emitModernSessionEvent(ctx, session, ev('approval/asked', {
+      id: 'appr-throwing',
+      toolName: 'bash',
+      reason: '读不到历史',
+    }))
+
+    const lines = readLog()
+    assert.equal(linesWith(lines, 'approval', session.id).length, 1, 'unknown policy falls back to ask -> notify')
+    const degraded = linesWith(lines, 'history-unavailable', session.id)
+    assert.ok(degraded.length >= 1, 'effectivePolicy must report the failed history read')
   } finally {
     await ctx.dispose?.()
   }

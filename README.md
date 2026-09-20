@@ -12,7 +12,7 @@
 
 **任务完成** ✅ ｜ **等待审批** 🔐 ｜ **等待回答** ❓ —— 离开屏幕也不错过任何需要你处理的事。
 
-> **兼容性**：v0.7.5 支持 DSH **0.1.2-alpha.4+**，已在 **0.1.5-rc.1** 上核对 `snapshotEvents()` 契约并通过真实-Cordis 探针（14/14；peer `@deepseek-ai/cordis ^4.0.2`）。历史读取同时兼容旧版 `session.events`（DSH ≤ 0.1.2-alpha.3）与新版 `snapshotEvents()`（DSH 0.1.2-alpha.4 起该属性已不存在），升级到 0.7.5 后摘要 / `/goal` 轮次 / 审批策略恢复正常。收到过「重启后所有通知静默」问题的请升级到 **0.7.3+**（见 FAQ）。
+> **兼容性**：v0.7.5 支持 DSH **0.1.2-alpha.4+**，已在 **0.1.5-rc.1** 上核对 `snapshotEvents()` 契约并通过真实-Cordis 探针（15/15；peer `@deepseek-ai/cordis ^4.0.2`）。历史读取同时兼容旧版 `session.events`（DSH ≤ 0.1.2-alpha.3）与新版 `snapshotEvents()`（DSH 0.1.2-alpha.4 起该属性已不存在），升级到 0.7.5 后摘要 / `/goal` 轮次 / 审批策略恢复正常。收到过「重启后所有通知静默」问题的请升级到 **0.7.3+**（见 FAQ）。
 
 ## ✨ 功能
 

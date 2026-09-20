@@ -26,12 +26,14 @@
   - **降级不再静默**：两条失败路径经 `onUnavailable` 写入 notify.log 的 `history-unavailable`
     条目（含原因），避免同类问题再次无声无息。
 - **兼容范围**：0.1.2-alpha.4+ 走 `snapshotEvents()`；旧 API 分支仅服务 DSH ≤ 0.1.2-alpha.3
-  （按 README，这类版本使用插件 0.7.3）。探针套件在真实 Cordis 上 14/14 通过，并按上述版本谱系
+  （按 README，这类版本使用插件 0.7.3）。探针套件在真实 Cordis 上 15/15 通过，并按上述版本谱系
   核对契约。
 - **测试**：`test/probe.test.mjs` 新增 `sessionEvents()` 路径用例（旧 API 命中 / 新 API 命中 /
   都不可用返回 `[]` / `snapshotEvents` 抛错不崩 / 失败经 `onUnavailable` 上报）与「仅提供
   `snapshotEvents()` 的 0.1.2-alpha.4+ 式会话仍能生成摘要、`/goal` 终态判定与 `never` 策略
-  抑制」的端到端用例；0.1.2-alpha.4+ 式会话 stub 改用 class 方法，确保 this 绑定被真实覆盖。
+  抑制」的端到端用例、以及「历史读取抛错时通知照发并留痕」（turn/end 与 approval 两条路径各一）
+  的端到端用例；0.1.2-alpha.4+ 式会话 stub 改用 class 方法，确保 this 绑定被真实覆盖；
+  `onUnavailable` 本身也做了异常隔离，上报失败不得反过来打断通知路径。
 - **文档**：README 与 README.en.md 的 FAQ 补齐并修正升级指引——Issue #1（重启后通知静默：
   **0.7.2 及更早**有缺陷，**0.7.3 已修**，建议升到 0.7.5+）与 Issue #2（0.1.2-alpha.4+ 的
   `session.events` 静默降级，升 0.7.5+）；README 的 DSH 兼容徽章同步到 0.1.5-rc.1。
