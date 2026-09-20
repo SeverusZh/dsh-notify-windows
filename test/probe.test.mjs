@@ -29,7 +29,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 
-import { apply } from '../lib/index.js'
+import { apply, sessionEvents } from '../lib/index.js'
 
 const LOG_PATH = path.join(os.tmpdir(), 'dsh-notify', 'notify.log')
 
@@ -82,6 +82,28 @@ function makeSession(overrides = {}) {
   }
 }
 
+/**
+ * DSH 0.1.2-alpha.4+ 式会话：无公开 `events` 属性（该属性自 0.1.2-alpha.4 起已被移除），
+ * 历史经 `snapshotEvents()` 按需读取（契约核实自 npm 上 `@deepseek-ai/dsh-session`
+ * 0.1.2-alpha.4 / 0.1.5-rc.2 的 lib/index.js 与 lib/types/index.d.ts：
+ *  `snapshotEvents(...): readonly SessionEvent[]`）。用 class 方法而非箭头函数：
+ * this 绑定若被写坏，测试必须变红。_log 仅供测试写入。
+ */
+class ModernSession {
+  constructor(overrides = {}) {
+    this.id = 'sess-' + (++sessionCounter)
+    this.header = { origin: 'main', delegationDepth: 0, cwd: '/tmp' }
+    this._log = []
+    Object.assign(this, overrides)
+  }
+  snapshotEvents() {
+    return this._log.slice()
+  }
+}
+function makeModernSession(overrides = {}) {
+  return new ModernSession(overrides)
+}
+
 function ev(type, data, extra = {}) {
   return { seq: seqCounter++, time: Date.now(), type, data, ...extra }
 }
@@ -128,6 +150,12 @@ async function boot(cfg = {}) {
  */
 function emitSessionEvent(ctx, session, event) {
   session.events.push(event)
+  ctx.emit(session, 'session/event', session, event)
+}
+
+/** 同上，但写入 0.1.2-alpha.4+ 式会话的私有日志（经 snapshotEvents() 暴露）。 */
+function emitModernSessionEvent(ctx, session, event) {
+  session._log.push(event)
   ctx.emit(session, 'session/event', session, event)
 }
 
@@ -321,6 +349,148 @@ test('probe: ask_user_question 直接调用 → ask-user 行并提取问题；ru
     assert.equal(embeddedLines.length, 1)
     assert.equal(embeddedLines[0].question, '部署到生产？')
     assert.equal(linesWith(lines, 'ask-user', other.id).length, 0)
+  } finally {
+    await ctx.dispose?.()
+  }
+})
+
+/* ------------------------------------------------------------------ *
+ * sessionEvents()：跨 DSH 世代的历史读取
+ * ------------------------------------------------------------------ */
+
+test('sessionEvents: 旧 API（session.events）命中 → 直接返回该数组', () => {
+  const events = [{ seq: 1 }]
+  assert.equal(sessionEvents({ events }), events, 'legacy array must be used as-is')
+})
+
+test('sessionEvents: 新 API（snapshotEvents()）命中 → 返回数组', () => {
+  const events = [{ seq: 2 }]
+  assert.deepEqual(sessionEvents({ snapshotEvents: () => events }), events)
+})
+
+test('sessionEvents: 两者均不可用 → []（session 缺失亦不崩）', () => {
+  assert.deepEqual(sessionEvents({}), [])
+  assert.deepEqual(sessionEvents(undefined), [])
+  assert.deepEqual(sessionEvents({ events: undefined, snapshotEvents: undefined }), [])
+})
+
+test('sessionEvents: snapshotEvents() 抛错 → 返回 []，绝不向上抛', () => {
+  const throwing = { snapshotEvents: () => { throw new Error('host-side read failed') } }
+  assert.deepEqual(sessionEvents(throwing), [])
+  // 旧 API 非数组（字段存在但非数组）时同样回退新 API，而非把非数组当真值用。
+  const events = [{ seq: 3 }]
+  assert.equal(sessionEvents({ events: null, snapshotEvents: () => events }), events)
+})
+
+test('sessionEvents: 读取失败经 onUnavailable 上报（降级不再静默）', () => {
+  const seen = []
+  const report = (reason) => seen.push(reason)
+  // 两条失败路径都必须上报：既没有旧 API、也没有新 API / 新 API 抛错。
+  assert.deepEqual(sessionEvents({}, report), [])
+  assert.deepEqual(sessionEvents({ snapshotEvents: () => { throw new Error('host-side read failed') } }, report), [])
+  assert.equal(seen.length, 2)
+  assert.match(seen[0], /neither events nor snapshotEvents/)
+  assert.match(seen[1], /host-side read failed/)
+  // 成功路径不得误报。
+  let calls = 0
+  sessionEvents({ events: [] }, () => { calls += 1 })
+  sessionEvents({ snapshotEvents: () => [] }, () => { calls += 1 })
+  assert.equal(calls, 0)
+})
+
+/* ------------------------------------------------------------------ *
+ * 0.1.2-alpha.4+ 式会话端到端：仅 snapshotEvents() 时功能不降级
+ * ------------------------------------------------------------------ */
+
+test('probe: 0.1.2-alpha.4+ 式会话（仅 snapshotEvents()）— 摘要、/goal 终态、never 策略仍生效', async () => {
+  clearLog()
+  const ctx = await boot({ excerptMaxChars: 10 })
+  try {
+    // 摘要：turnWindow 经 snapshotEvents() 读到 assistant/message。
+    const excerptSession = makeModernSession()
+    for (const event of completedTurnEvents({ lastText: '构建完成，全部测试通过。' })) {
+      emitModernSessionEvent(ctx, excerptSession, event)
+    }
+
+    // /goal 终态：userSource.kind='goal' 必须能被读到，complete 才通知。
+    const goalDone = makeModernSession()
+    for (const event of completedTurnEvents({
+      userSource: { kind: 'goal', goalId: 'g1', revision: 2, round: 1 },
+      goalOps: ['complete'],
+    })) emitModernSessionEvent(ctx, goalDone, event)
+
+    // /goal 非终态：应静默（读不到 userSource 时会误发，故此用例同时锁定降级回归）。
+    const goalRunning = makeModernSession()
+    for (const event of completedTurnEvents({
+      userSource: { kind: 'goal', goalId: 'g1', revision: 2, round: 2 },
+      goalOps: ['edit'],
+    })) emitModernSessionEvent(ctx, goalRunning, event)
+
+    // never 策略：effectivePolicy 经 snapshotEvents() 读到 approval/policy。
+    const neverSession = makeModernSession()
+    neverSession._log.push(ev('approval/policy', { policy: 'never' }))
+    emitModernSessionEvent(ctx, neverSession, ev('approval/asked', {
+      id: 'appr-never-modern',
+      toolName: 'bash',
+      reason: '自动拒绝',
+    }))
+
+    const lines = readLog()
+    const notifies = linesWith(lines, 'notify', excerptSession.id)
+    assert.equal(notifies.length, 1, 'modern session must still notify')
+    assert.match(notifies[0].body, /构建完成，全部测试通…/, 'excerpt must come from snapshotEvents()')
+    assert.equal(linesWith(lines, 'notify', goalDone.id).length, 1, 'terminal goal round must notify')
+    assert.equal(linesWith(lines, 'notify', goalRunning.id).length, 0, 'non-terminal goal round must stay quiet')
+    assert.equal(linesWith(lines, 'approval', neverSession.id).length, 0, 'never policy must suppress')
+  } finally {
+    await ctx.dispose?.()
+  }
+})
+
+test('probe: snapshotEvents() 抛错时通知照发，并写 history-unavailable 行（降级不静默）', async () => {
+  clearLog()
+  const ctx = await boot({ excerptMaxChars: 10 })
+  try {
+    const session = makeModernSession({
+      snapshotEvents() {
+        throw new Error('host-side read failed')
+      },
+    })
+    for (const event of completedTurnEvents({ lastText: '这段历史读不到。' })) {
+      emitModernSessionEvent(ctx, session, event)
+    }
+
+    const lines = readLog()
+    assert.equal(linesWith(lines, 'notify', session.id).length, 1, 'notification path must survive a read failure')
+    const degraded = linesWith(lines, 'history-unavailable', session.id)
+    assert.ok(degraded.length >= 1, 'a failed history read must be logged')
+    assert.match(degraded[0].reason, /host-side read failed/)
+  } finally {
+    await ctx.dispose?.()
+  }
+})
+
+test('probe: approval 路径读历史失败也留痕（锁定 effectivePolicy 回调接线）', async () => {
+  clearLog()
+  const ctx = await boot()
+  try {
+    // 只派发 approval/asked（不发 turn/end）：此时唯一的 history-unavailable 来源就是
+    // effectivePolicy —— 回调接线若丢失，本用例必须变红。
+    const session = makeModernSession({
+      snapshotEvents() {
+        throw new Error('host-side read failed')
+      },
+    })
+    emitModernSessionEvent(ctx, session, ev('approval/asked', {
+      id: 'appr-throwing',
+      toolName: 'bash',
+      reason: '读不到历史',
+    }))
+
+    const lines = readLog()
+    assert.equal(linesWith(lines, 'approval', session.id).length, 1, 'unknown policy falls back to ask -> notify')
+    const degraded = linesWith(lines, 'history-unavailable', session.id)
+    assert.ok(degraded.length >= 1, 'effectivePolicy must report the failed history read')
   } finally {
     await ctx.dispose?.()
   }

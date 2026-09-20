@@ -7,12 +7,12 @@
   <img src="https://img.shields.io/github/license/SeverusZh/dsh-notify-windows" alt="license">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-blue" alt="platform">
   <img src="https://img.shields.io/github/stars/SeverusZh/dsh-notify-windows?style=social" alt="stars">
-  <img src="https://img.shields.io/badge/DeepSeek%20Harness-0.1.2--rc.1-blue" alt="dsh">
+  <img src="https://img.shields.io/badge/DeepSeek%20Harness-0.1.5--rc.1-blue" alt="dsh">
 </p>
 
 **任务完成** ✅ ｜ **等待审批** 🔐 ｜ **等待回答** ❓ —— 离开屏幕也不错过任何需要你处理的事。
 
-> **兼容性**：v0.7.4 支持 DSH **0.1.2-alpha.4+**，已在当前运行时 **0.1.2-rc.1** 实测（真实-Cordis 探针 7/7 通过；peer `@deepseek-ai/cordis ^4.0.2`）。旧版 DSH（0.1.0-rc.8 及更早）请使用最后兼容的 npm 版本 **0.7.3**。
+> **兼容性**：v0.7.5 支持 DSH **0.1.2-alpha.4+**，已在 **0.1.5-rc.1** 上核对 `snapshotEvents()` 契约并通过真实-Cordis 探针（15/15；peer `@deepseek-ai/cordis ^4.0.2`）。历史读取同时兼容旧版 `session.events`（DSH ≤ 0.1.2-alpha.3）与新版 `snapshotEvents()`（DSH 0.1.2-alpha.4 起该属性已不存在），升级到 0.7.5 后摘要 / `/goal` 轮次 / 审批策略恢复正常。收到过「重启后所有通知静默」问题的请升级到 **0.7.3+**（见 FAQ）。
 
 ## ✨ 功能
 
@@ -126,6 +126,8 @@ node scripts\smoke-test.mjs
 - **WSL 下收不到通知？** 插件会自动用 `wslpath -w` 把脚本路径转成 `\\wsl.localhost\...` UNC 路径，并优先通过 `/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe` 调用 PowerShell（不依赖 PATH，systemd / cron 等最小环境也能工作）。若仍失败，查看 `%TEMP%\dsh-notify\notify.log` 中的 `error` 条目。
 - **/goal 模式会提醒吗？** 默认不会：自动推进的中间回合保持静默，只有目标完成（或阻塞）的最终回合才提醒；如需每个回合都提醒，把 `notifyOnGoalRounds` 设为 `true`。
 - **为什么审批提醒有时不弹？** 会话审批策略为 `never` 时审批会被自动拒绝、不会等待，插件会跳过提醒；策略为 `ask` 时才提醒。
+- **重启 DSH 后所有通知都没了？** 这是 **0.7.2 及更早**的已知缺陷：子代理判定当时写作 `delegationDepth !== undefined`，会把每次 `dsh web` 重启后带 `delegationDepth: 0` 的**主会话**误判为子代理并静默过滤。该缺陷已在 **0.7.3** 修复（判定改为 `(delegationDepth ?? 0) > 0`）：请把插件升级到 **0.7.3 及以上**（推荐 0.7.5），执行 `dsh plugin --profile web update dsh-notify-windows` 后重启 DSH 宿主。
+- **通知摘要变空、`/goal` 中间回合开始提醒、`never` 策略仍提醒？** 插件读取的 `session.events` 属性**自 DSH 0.1.2-alpha.4 起就不存在**（历史读取改为 `snapshotEvents()`；0.1.2-alpha.3 及更早才有该属性），**0.7.4 及更早**读取该属性会拿到 `undefined` 后静默降级，出现上述三种症状。**请升级到 0.7.5 及以上**（历史读取已同时兼容两种 API；若升级后 `%TEMP%\dsh-notify\notify.log` 仍出现 `history-unavailable` 条目，请附日志反馈）。
 - **更新插件代码后如何生效？** 执行 `dsh plugin --profile web update dsh-notify-windows` 后重启 DSH 宿主。
 
 ## 📄 许可证
