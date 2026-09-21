@@ -7,11 +7,12 @@
   <img src="https://img.shields.io/github/license/SeverusZh/dsh-notify-windows" alt="license">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-blue" alt="platform">
   <img src="https://img.shields.io/github/stars/SeverusZh/dsh-notify-windows?style=social" alt="stars">
+  <img src="https://img.shields.io/badge/DSH%200.1.5--rc.1%20%2F%20rc.2%20%2F%200.1.6--alpha.2-blue" alt="dsh">
 </p>
 
 **Task finished** ✅ ｜ **Approval pending** 🔐 ｜ **Question pending** ❓ — never miss anything that needs you, even away from the screen.
 
-> **Compatibility**: v0.7.5 supports DSH **0.1.2-alpha.4+** and was verified against the `snapshotEvents()` contract on **0.1.5-rc.1** with the real-Cordis probe suite (15/15; peer `@deepseek-ai/cordis ^4.0.2`). Session history is read through both the legacy `session.events` (DSH <= 0.1.2-alpha.3) and `snapshotEvents()` (DSH 0.1.2-alpha.4+, where that property no longer exists), so excerpts, `/goal` round detection and approval-policy suppression work again after upgrading to 0.7.5. If you saw "all notifications went silent after a restart", upgrade to **0.7.3+**.
+> **Compatibility**: v0.7.5 supports DSH **0.1.2-alpha.4+** and was verified against the `snapshotEvents()` contract on **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2** with the real-Cordis probe suite (15/15; peer `@deepseek-ai/cordis ^4.0.2`). Session history is read through both the legacy `session.events` (DSH <= 0.1.2-alpha.3) and `snapshotEvents()` (DSH 0.1.2-alpha.4+, where that property no longer exists), so excerpts, `/goal` round detection and approval-policy suppression work again after upgrading to 0.7.5. If you saw "all notifications went silent after a restart", upgrade to **0.7.3+**.
 
 ## ✨ Features
 
