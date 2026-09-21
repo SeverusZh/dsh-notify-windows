@@ -2,6 +2,20 @@
 
 本项目遵循 [Semantic Versioning](https://semver.org/)。
 
+## [0.7.6] - 2026-09-22
+
+### 兼容性
+
+- **新增 `dsh.compatibility` 声明**（DSH STORE 上架契约）：`dsh` 字段下新增
+  `compatibility`（保留原 `bundle`），逐版本声明兼容矩阵——`dshReleases` 中
+  `0.1.5-rc.1` / `0.1.5-rc.2` / `0.1.6-alpha.2` 均为 `compatible`（三版本已在本机
+  真实装载运行，插件正常加载、零错误）；`node` 范围 `>=20`，与 `engines.node` 一致。
+  未实测的版本不声明（扫描时按 `unknown` 处理）。
+
+### 其它
+
+- `lib/index.js` 的 `VERSION` 常量同步提升为 `0.7.6`，与 `package.json` 一致。
+
 ## [0.7.5] - 2026-09-20
 
 ### 修复：DSH 0.1.2-alpha.4+ 已无 `session.events`，历史读取改用 `snapshotEvents()`
