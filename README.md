@@ -7,12 +7,14 @@
   <img src="https://img.shields.io/github/license/SeverusZh/dsh-notify-windows" alt="license">
   <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-blue" alt="platform">
   <img src="https://img.shields.io/github/stars/SeverusZh/dsh-notify-windows?style=social" alt="stars">
-  <img src="https://img.shields.io/badge/DSH%200.1.5--rc.1%20%2F%20rc.2%20%2F%200.1.6--alpha.2-blue" alt="dsh">
+  <img src="https://img.shields.io/badge/DSH%200.1.5--rc.1%20%2F%20rc.2%20%2F%200.1.6--alpha.2%20%2F%200.1.7--rc.1-blue" alt="dsh">
 </p>
 
 **任务完成** ✅ ｜ **等待审批** 🔐 ｜ **等待回答** ❓ —— 离开屏幕也不错过任何需要你处理的事。
 
-> **兼容性**：v0.7.5 支持 DSH **0.1.2-alpha.4+**，已在 **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2** 上核对 `snapshotEvents()` 契约并通过真实-Cordis 探针（15/15；peer `@deepseek-ai/cordis ^4.0.2`）。历史读取同时兼容旧版 `session.events`（DSH ≤ 0.1.2-alpha.3）与新版 `snapshotEvents()`（DSH 0.1.2-alpha.4 起该属性已不存在），升级到 0.7.5 后摘要 / `/goal` 轮次 / 审批策略恢复正常。收到过「重启后所有通知静默」问题的请升级到 **0.7.3+**（见 FAQ）。
+> **兼容性**：v0.7.7 支持 DSH **0.1.2-alpha.4+**，已在 **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1** 上核对 `snapshotEvents()` 契约并通过真实-Cordis 探针（15/15；peer `@deepseek-ai/cordis ^4.0.2`）。历史读取同时兼容旧版 `session.events`（DSH ≤ 0.1.2-alpha.3）与新版 `snapshotEvents()`（DSH 0.1.2-alpha.4 起该属性已不存在），升级到 0.7.5 后摘要 / `/goal` 轮次 / 审批策略恢复正常。收到过「重启后所有通知静默」问题的请升级到 **0.7.3+**（见 FAQ）。
+>
+> **0.1.7-rc.1 说明**：该版本起 `snapshotEvents()` 被标记为 `@deprecated`（"新调用被禁止，现有未迁移逻辑可暂时保留"）。本插件的历史读取属既有逻辑，按官方 Agent Note 的延期口径暂不迁移——DSH 仍在内存保留完整事件序列，通知摘要与 `/goal` 轮次检查照常工作；待 DSH 提供异步分页读取替代后再迁移。
 
 ## ✨ 功能
 

@@ -2,6 +2,24 @@
 
 本项目遵循 [Semantic Versioning](https://semver.org/)。
 
+## [0.7.7] - 2026-09-24
+
+### 兼容性
+
+- **适配 DSH 0.1.7-rc.1**：在本机 **0.1.7-rc.1** 上真实装载运行通过（插件正常加载、
+  零错误；`dsh-notify` 入口激活）。`dsh.compatibility.dshReleases` 新增
+  `"0.1.7-rc.1": "compatible"`；README 徽章与兼容性声明同步。
+- **`snapshotEvents()` 弃用（延期迁移）**：DSH 0.1.6-alpha.1 起将
+  `Session.snapshotEvents()` / `eventAt()` / `ownEvents()` 标记为 `@deprecated`，
+  0.1.7-rc.1 Release Notes 重申；官方 Agent Note 明确"新调用被禁止，但现有未迁移
+  逻辑可暂时保留"。本插件的历史读取（通知摘要 / `/goal` 轮次检查）属既有逻辑，
+  继续使用该访问器，并在 `lib/index.js` 的 `sessionEvents()` 头注记录延期理由与
+  迁移触发条件（待 DSH 提供异步分页读取替代后再迁移）。无源码逻辑变更。
+
+### 其它
+
+- `lib/index.js` 的 `VERSION` 常量同步提升为 `0.7.7`，与 `package.json` 一致。
+
 ## [0.7.6] - 2026-09-22
 
 ### 兼容性
