@@ -2,6 +2,17 @@
 
 本项目遵循 [Semantic Versioning](https://semver.org/)。
 
+## [0.7.7-beta.0] - 2026-09-24
+
+### Beta（DSH 0.1.7-rc.1 适配，测试版）
+
+- 本分支（`dev-0.1.7.rc1`，尚未合并 `main`）相对 `main` 的适配改动：
+  `package.json` 的 `dsh.compatibility.dshReleases` 新增 `"0.1.7-rc.1": "compatible"`
+  （`peerDependencies` 仍为 `@deepseek-ai/cordis ^4.0.2`）；README 徽章与兼容性声明同步；
+  `lib/index.js` 的 `VERSION` 常量升至 `0.7.7`，并补充 `snapshotEvents()` 弃用延期迁移的
+  头注。源码逻辑无变更。
+- 发布为 npm 测试版（`--tag beta`）；`latest` 保持不变。正式版 `0.7.7` 待 `main` 合并后发布。
+
 ## [0.7.7] - 2026-09-24
 
 ### 兼容性
