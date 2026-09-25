@@ -2,24 +2,15 @@
 
 本项目遵循 [Semantic Versioning](https://semver.org/)。
 
-## [0.7.7-beta.0] - 2026-09-24
-
-### Beta（DSH 0.1.7-rc.1 适配，测试版）
-
-- 本分支（`dev-0.1.7.rc1`，尚未合并 `main`）相对 `main` 的适配改动：
-  `package.json` 的 `dsh.compatibility.dshReleases` 新增 `"0.1.7-rc.1": "compatible"`
-  （`peerDependencies` 仍为 `@deepseek-ai/cordis ^4.0.2`）；README 徽章与兼容性声明同步；
-  `lib/index.js` 的 `VERSION` 常量升至 `0.7.7`，并补充 `snapshotEvents()` 弃用延期迁移的
-  头注。源码逻辑无变更。
-- 发布为 npm 测试版（`--tag beta`）；`latest` 保持不变。正式版 `0.7.7` 待 `main` 合并后发布。
-
-## [0.7.7] - 2026-09-24
+## [0.7.7] - 2026-09-25
 
 ### 兼容性
 
-- **适配 DSH 0.1.7-rc.1**：在本机 **0.1.7-rc.1** 上真实装载运行通过（插件正常加载、
-  零错误；`dsh-notify` 入口激活）。`dsh.compatibility.dshReleases` 新增
-  `"0.1.7-rc.1": "compatible"`；README 徽章与兼容性声明同步。
+- **适配 DSH 0.1.7-rc.1 / 0.1.7-rc.2**：在本机 **0.1.7-rc.1** 与 **0.1.7-rc.2** 上
+  真实装载运行通过（插件正常加载、零错误；`dsh-notify` 入口激活）。
+  `dsh.compatibility.dshReleases` 新增 `"0.1.7-rc.1"` / `"0.1.7-rc.2": "compatible"`；
+  README 徽章与兼容性声明同步。0.1.7-rc.1 → rc.2 的官方 `@deepseek-ai/dsh-*` 公开
+  API 无移除、无改名（`dsh-session` 等为增量新增），本插件无源码适配需求。
 - **`snapshotEvents()` 弃用（延期迁移）**：DSH 0.1.6-alpha.1 起将
   `Session.snapshotEvents()` / `eventAt()` / `ownEvents()` 标记为 `@deprecated`，
   0.1.7-rc.1 Release Notes 重申；官方 Agent Note 明确"新调用被禁止，但现有未迁移
@@ -30,6 +21,7 @@
 ### 其它
 
 - `lib/index.js` 的 `VERSION` 常量同步提升为 `0.7.7`，与 `package.json` 一致。
+- 测试版 `0.7.7-beta.0`（`--tag beta`）的内容随本版一并正式发布。
 
 ## [0.7.6] - 2026-09-22
 
