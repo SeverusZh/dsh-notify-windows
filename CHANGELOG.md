@@ -2,6 +2,20 @@
 
 本项目遵循 [Semantic Versioning](https://semver.org/)。
 
+## [0.7.8] - 2026-09-29
+
+### 兼容性
+
+- **适配 DSH 0.2.0-rc.1**：DSH 0.2.0-rc.1 新增插件兼容性门禁，对所有
+  `@deepseek-ai/dsh` / `@deepseek-ai/dsh-*` peer 做 `includePrerelease` 的 semver 校验，
+  旧范围 `^0.1.7-rc.1` 不匹配 0.2.0-rc.1，会导致整个 bundle 被跳过
+  （`skipping profile bundle`）。本插件不声明任何 `@deepseek-ai/dsh-*` peer
+  （只声明 `@deepseek-ai/cordis`，不参与门禁），故 peer 范围无需改动；本版仅同步
+  兼容矩阵与徽章。
+- 本机 **0.2.0-rc.1** 真实装载验证通过（插件正常加载、零错误，无门禁跳过告警）；
+  兼容矩阵 `dsh.compatibility.dshReleases` 新增 `"0.2.0-rc.1": "compatible"`，
+  README 徽章与兼容性声明同步更新。
+
 ## [0.7.7] - 2026-09-25
 
 ### 兼容性
