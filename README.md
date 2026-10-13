@@ -74,6 +74,8 @@ dsh plugin --profile web remove dsh-notify-windows
 | --- | --- | --- |
 | `enabled` | `true` | 总开关 |
 | `reasons` | `[completed, error, max-tokens]` | 需要提醒的回合结束原因（可选 `aborted` / `interrupted` / `blocked`） |
+| `locale` | `zh` | toast 文案的内置语言包：`zh` / `en` / `ru` |
+| `messages` | `{}` | 按 key 覆盖文案，优先级高于 `locale`（见「多语言」） |
 | `includeSubagents` | `false` | 是否也提醒子代理会话 |
 | `notifyOnStart` | `false` | 插件加载时发一条「已激活」通知 |
 | `notifyOnApproval` | `true` | 审批请求提醒（策略 `never` 时自动跳过） |
@@ -88,6 +90,39 @@ dsh plugin --profile web remove dsh-notify-windows
 | `openOnClick` | `true` | 任务完成 / 审批 / 提问 toast 是否可点击（false 回退为旧的无点击 toast） |
 | `preferExisting` | `true` | true 走 launcher 优先聚焦已开 DSH 窗口；false 直接用默认浏览器打开 URL |
 | `webUrl` | `''` | 覆盖自动发现的基地址（如 `http://192.168.1.5:4000`），留空自动发现（默认 `http://127.0.0.1:3080`） |
+
+## 🌐 多语言
+
+toast 文案取自内置语言包，由 `locale` 选择。默认 `zh`，因此已有安装升级后文案完全不变；
+`en` 与 `ru` 为完整语言包。任何一条文案都可以用 `messages` 按 key 覆盖，覆盖优先于语言包：
+
+```yaml
+- id: dsh-notify
+  name: dsh-notify-windows
+  config:
+    locale: ru
+    messages:
+      approvalTitle: ' · Требуется одобрение'
+      turnSuffix: ' — попытка {turn}'
+```
+
+| key | 用途 |
+| --- | --- |
+| `completed` / `error` / `max-tokens` / `aborted` / `interrupted` / `blocked` | 回合结束原因行（按 `reason.kind` 查表） |
+| `turnEnded` | 原因在语言包中没有对应条目时的兜底文案 |
+| `turnSuffix` | 追加在原因行后的轮次后缀 —— `{turn}` |
+| `approvalTitle` | 审批通知的标题后缀 |
+| `approvalToolWithReason` / `approvalTool` / `approvalGeneric` | 审批正文 —— `{tool}` / `{reason}` |
+| `askTitle` | 提问通知的标题后缀 |
+| `askFallback` | 提取不到问题文本时的提问正文 |
+| `activated` | `notifyOnStart` 的「已激活」通知 —— `{version}` |
+| `warnSpawnFailed` / `warnToastFailed` / `warnExitCode` / `warnChannelUnavailable` | DSH 日志文案 —— `{code}`；`dsh-notify:` 前缀不翻译，保证跨语言可 grep |
+
+说明：`{占位符}` 由事件数据代入；未知占位符**原样保留**（不会被清空），非字符串的覆盖值会被忽略，
+因此写错不会产生空正文或 `[object Object]`；未知 `locale` 回退默认语言包。
+
+审批 / 提问路径的日志行新增 `title` 与 `body` 字段（与 `notify` 行一致），
+`%TEMP%\dsh-notify\notify.log` 因此能直接看到实际发出的文案。
 
 ## 🔔 触发场景
 
