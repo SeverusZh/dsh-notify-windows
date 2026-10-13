@@ -72,6 +72,8 @@ in `$DSH_HOME/profiles/web/cordis.patch.yml` (hot-applied by the running host �
 | --- | --- | --- |
 | `enabled` | `true` | master switch |
 | `reasons` | `[completed, error, max-tokens]` | turn-end reasons to notify (`aborted` / `interrupted` / `blocked` also available) |
+| `locale` | `zh` | built-in message pack for the toast text: `zh` / `en` / `ru` |
+| `messages` | `{}` | per-key wording overrides applied on top of `locale` (see Localization) |
 | `includeSubagents` | `false` | also notify subagent sessions |
 | `notifyOnStart` | `false` | toast when the plugin loads |
 | `notifyOnApproval` | `true` | toast on `approval/asked` (skipped under policy `never`) |
@@ -86,6 +88,42 @@ in `$DSH_HOME/profiles/web/cordis.patch.yml` (hot-applied by the running host �
 | `openOnClick` | `true` | make completion / approval / question toasts clickable (false falls back to the old non-clickable toast) |
 | `preferExisting` | `true` | when true, launcher prefers focusing an open DSH window; when false, just open the URL in the default browser |
 | `webUrl` | `''` | override the auto-discovered base URL (e.g. `http://192.168.1.5:4000`); leave empty to auto-discover (defaults to `http://127.0.0.1:3080`) |
+
+## 🌐 Localization
+
+Toast wording comes from a built-in message pack selected by `locale`. The default is `zh`, so an
+existing install sees no change after upgrading; `en` and `ru` ship as complete packs. Any single
+string can be overridden per install through `messages`, which wins over the selected pack:
+
+```yaml
+- id: dsh-notify
+  name: dsh-notify-windows
+  config:
+    locale: ru
+    messages:
+      approvalTitle: ' · Требуется одобрение'
+      turnSuffix: ' — попытка {turn}'
+```
+
+| Key | Used for |
+| --- | --- |
+| `completed` / `error` / `max-tokens` / `aborted` / `interrupted` / `blocked` | the turn/end reason line (looked up by `reason.kind`) |
+| `turnEnded` | fallback when a reason has no entry in the pack |
+| `turnSuffix` | turn number appended to the reason line — `{turn}` |
+| `approvalTitle` | title suffix of an approval toast |
+| `approvalToolWithReason` / `approvalTool` / `approvalGeneric` | approval body — `{tool}`, `{reason}` |
+| `askTitle` | title suffix of a question toast |
+| `askFallback` | question body when no question text could be extracted |
+| `activated` | the `notifyOnStart` toast — `{version}` |
+| `warnSpawnFailed` / `warnToastFailed` / `warnExitCode` / `warnChannelUnavailable` | DSH log wording — `{code}`; the `dsh-notify:` tag itself is never translated, so logs stay greppable across locales |
+
+`{placeholder}` tokens are substituted from the event data. An unknown placeholder is left verbatim
+rather than blanked, and a non-string override is ignored — a typo can therefore never produce an
+empty or `[object Object]` toast. An unknown `locale` falls back to the default pack.
+
+The `approval` and `ask-user` log entries now carry `title` and `body` alongside the existing
+metadata (matching what the `notify` entry already did), so `%TEMP%\dsh-notify\notify.log` shows
+the text that was actually sent.
 
 ## 🔔 Triggers
 

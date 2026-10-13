@@ -2,6 +2,29 @@
 
 本项目遵循 [Semantic Versioning](https://semver.org/)。
 
+## [Unreleased]
+
+### 新增
+
+- **多语言 toast 文案（`locale` / `messages`）**：新增内置语言包 `zh`（默认，**保持现有文案不变**）、
+  `en`、`ru`，并由 `locale` 选择；任意一条文案都可用 `messages` 按 key 覆盖，覆盖优先于语言包。
+  占位符（`{turn}` / `{tool}` / `{reason}` / `{version}` / `{code}`）由事件数据代入：未知占位符
+  **原样保留**而非清空，非字符串覆盖值被忽略，未知 `locale` 回退默认语言包——写错不会产生空正文或
+  `[object Object]`。默认值不变，故本次改动对既有安装零影响（升级后文案与行为完全一致）。
+- 审批（`approval`）与提问（`ask-user`）路径的日志行补充 `title` 与 `body` 字段，与既有的
+  `notify` 行对齐，便于排查「实际发出去的文案是什么」。新增字段为**增量**，不破坏既有日志消费方。
+
+### 测试
+
+- `test/probe.test.mjs` 新增 5 个用例（共 20/20 通过）：
+  - `resolveMessages`：各语言包**键集合一致**、每条文案非空、`{turn}` / `{tool}` / `{reason}` /
+    `{version}` / `{code}` 占位符**逐项齐备**（漏一个即变红）、未知 `locale` 回退默认包、
+    `messages` 覆盖优先于语言包、非字符串覆盖被忽略、`messages` 非对象不崩；
+  - 端到端 `locale=en` / `locale=ru`：完成回合正文与轮次后缀（`Task completed (turn 1)` /
+    `Задача завершена (раунд 1)`）；
+  - 端到端 `messages` 覆盖：未覆盖的键仍用所选语言包；
+  - 端到端 approval / ask 的标题与正文，含 `approvalGeneric` 与 `askFallback` 两条兜底文案。
+
 ## [0.7.8] - 2026-09-29
 
 ### 兼容性

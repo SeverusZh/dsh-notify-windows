@@ -29,7 +29,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { Context } from '@deepseek-ai/cordis'
 
-import { apply, sessionEvents } from '../lib/index.js'
+import { apply, sessionEvents, resolveMessages, MESSAGES } from '../lib/index.js'
 
 const LOG_PATH = path.join(os.tmpdir(), 'dsh-notify', 'notify.log')
 
@@ -491,6 +491,125 @@ test('probe: approval 路径读历史失败也留痕（锁定 effectivePolicy �
     assert.equal(linesWith(lines, 'approval', session.id).length, 1, 'unknown policy falls back to ask -> notify')
     const degraded = linesWith(lines, 'history-unavailable', session.id)
     assert.ok(degraded.length >= 1, 'effectivePolicy must report the failed history read')
+  } finally {
+    await ctx.dispose?.()
+  }
+})
+
+/* ------------------------------------------------------------------ *
+ * 国际化：locale / messages
+ * ------------------------------------------------------------------ */
+
+test('resolveMessages: 各语言包键集合一致、占位符齐备、非法覆盖被忽略', () => {
+  const zhKeys = Object.keys(MESSAGES.zh).sort()
+  for (const locale of Object.keys(MESSAGES)) {
+    const pack = MESSAGES[locale]
+    assert.deepEqual(Object.keys(pack).sort(), zhKeys, `pack "${locale}" must carry exactly the same keys as zh`)
+    for (const [key, value] of Object.entries(pack)) {
+      assert.equal(typeof value, 'string', `${locale}.${key} must be a string`)
+      assert.ok(value.length > 0, `${locale}.${key} must not be empty`)
+    }
+    // 占位符齐备性：漏掉一个，对应字段就会从正文里消失。这里逐项锁定。
+    assert.match(pack.turnSuffix, /\{turn\}/, `pack "${locale}" must interpolate the turn number`)
+    assert.match(pack.approvalToolWithReason, /\{tool\}/, `pack "${locale}" must interpolate the tool name`)
+    assert.match(pack.approvalToolWithReason, /\{reason\}/, `pack "${locale}" must interpolate the reason`)
+    assert.match(pack.approvalTool, /\{tool\}/, `pack "${locale}" must interpolate the tool name`)
+    assert.match(pack.activated, /\{version\}/, `pack "${locale}" must interpolate the version`)
+    assert.match(pack.warnExitCode, /\{code\}/, `pack "${locale}" must interpolate the exit code`)
+  }
+  // 未知 / 缺失 locale 回退默认包，而不是留下空正文。
+  assert.deepEqual(resolveMessages({ locale: 'xx' }), MESSAGES.zh)
+  assert.deepEqual(resolveMessages({}), MESSAGES.zh)
+  // messages 覆盖优先于语言包。
+  assert.equal(resolveMessages({ locale: 'en', messages: { completed: 'CUSTOM' } }).completed, 'CUSTOM')
+  // 非字符串覆盖被忽略，绝不把 "[object Object]" 之类的值泄漏进通知正文。
+  const guarded = resolveMessages({ locale: 'en', messages: { completed: { evil: true }, error: null, blocked: 7 } })
+  assert.equal(guarded.completed, MESSAGES.en.completed)
+  assert.equal(guarded.error, MESSAGES.en.error)
+  assert.equal(guarded.blocked, MESSAGES.en.blocked)
+  // messages 本身非对象时同样不崩。
+  assert.deepEqual(resolveMessages({ locale: 'ru', messages: 'nope' }), MESSAGES.ru)
+  assert.deepEqual(resolveMessages({ locale: 'ru', messages: null }), MESSAGES.ru)
+})
+
+test('probe: locale=en —— 完成回合正文与轮次后缀走英文包', async () => {
+  clearLog()
+  const ctx = await boot({ locale: 'en', excerpt: false })
+  try {
+    const session = makeSession()
+    for (const event of completedTurnEvents()) emitSessionEvent(ctx, session, event)
+    const notifies = linesWith(readLog(), 'notify', session.id)
+    assert.equal(notifies.length, 1)
+    assert.equal(notifies[0].body, 'Task completed (turn 1)')
+  } finally {
+    await ctx.dispose?.()
+  }
+})
+
+test('probe: locale=ru —— 完成回合正文与轮次后缀走俄文包', async () => {
+  clearLog()
+  const ctx = await boot({ locale: 'ru', excerpt: false })
+  try {
+    const session = makeSession()
+    for (const event of completedTurnEvents()) emitSessionEvent(ctx, session, event)
+    const notifies = linesWith(readLog(), 'notify', session.id)
+    assert.equal(notifies.length, 1)
+    assert.equal(notifies[0].body, 'Задача завершена (раунд 1)')
+  } finally {
+    await ctx.dispose?.()
+  }
+})
+
+test('probe: messages 覆盖生效，未覆盖的键仍用所选语言包', async () => {
+  clearLog()
+  const ctx = await boot({ locale: 'en', excerpt: false, messages: { completed: 'ГОТОВО' } })
+  try {
+    const session = makeSession()
+    for (const event of completedTurnEvents()) emitSessionEvent(ctx, session, event)
+    const notifies = linesWith(readLog(), 'notify', session.id)
+    assert.equal(notifies.length, 1)
+    assert.equal(notifies[0].body, 'ГОТОВО (turn 1)')
+  } finally {
+    await ctx.dispose?.()
+  }
+})
+
+test('probe: locale 生效于 approval / ask 的标题与正文（含兜底文案）', async () => {
+  clearLog()
+  const ctx = await boot({ locale: 'en' })
+  try {
+    const session = makeSession()
+    // 带工具名与原因的审批，以及无工具名的审批（走 approvalGeneric 兜底）。
+    emitSessionEvent(ctx, session, ev('approval/asked', { id: 'a1', toolName: 'pwsh', reason: 'needs a wider sandbox' }))
+    emitSessionEvent(ctx, session, ev('approval/asked', { id: 'a2' }))
+    // 能提取到问题文本的提问，以及提不出文本的提问（走 askFallback 兜底）。
+    emitSessionEvent(ctx, session, ev('tool/call', {
+      turn: 1,
+      step: 0,
+      callId: 'c1',
+      name: 'ask_user_question',
+      arguments: JSON.stringify({ questions: [{ id: 'q1', question: 'Continue?' }] }),
+    }))
+    emitSessionEvent(ctx, session, ev('tool/call', {
+      turn: 1,
+      step: 1,
+      callId: 'c2',
+      name: 'ask_user_question',
+      arguments: JSON.stringify({}),
+    }))
+
+    const lines = readLog()
+    const approvals = linesWith(lines, 'approval', session.id)
+    assert.equal(approvals.length, 2)
+    assert.equal(approvals[0].title, 'ProbeNotify · Needs approval')
+    assert.equal(approvals[0].body, 'tool pwsh: needs a wider sandbox')
+    assert.equal(approvals[1].body, 'An operation is waiting for your approval')
+
+    const asks = linesWith(lines, 'ask-user', session.id)
+    assert.equal(asks.length, 2)
+    assert.equal(asks[0].title, 'ProbeNotify · Needs your answer')
+    assert.equal(asks[0].body, 'Continue?')
+    assert.equal(asks[1].body, 'The agent is waiting for your confirmation')
   } finally {
     await ctx.dispose?.()
   }

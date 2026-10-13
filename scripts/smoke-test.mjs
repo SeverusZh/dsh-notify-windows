@@ -45,9 +45,14 @@ const { apply: dshNotify } = await import(pluginUrl);
 
 const logPath = join(tmpdir(), "dsh-notify", "notify.log");
 
+// Optional locale for the wording smoke run, e.g. DSH_NOTIFY_LOCALE=ru. Used to
+// verify a real Windows toast in a non-default language; the assertions below
+// are locale-independent (they count events, not wording).
+const locale = process.env.DSH_NOTIFY_LOCALE;
+
 const ctx = new Context();
-await ctx.plugin(dshNotify, { log: true, notifyOnStart: false });
-console.log("[smoke] plugin applied");
+await ctx.plugin(dshNotify, { log: true, notifyOnStart: false, ...(locale ? { locale } : {}) });
+console.log("[smoke] plugin applied" + (locale ? " (locale=" + locale + ")" : ""));
 
 // The log file is shared with the live host; snapshot the line count now and
 // count only entries appended during this run.
