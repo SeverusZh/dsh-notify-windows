@@ -1,22 +1,25 @@
-# dsh-notify-windows
+<div align="center">
 
-> DeepSeek Harness（DSH）插件：当 Agent 需要你关注时，向 Windows 发送系统桌面通知。
+# 🔔 dsh-notify-windows
 
-<p align="center">
-  <img src="https://img.shields.io/npm/v/dsh-notify-windows" alt="npm">
-  <img src="https://img.shields.io/github/license/SeverusZh/dsh-notify-windows" alt="license">
-  <img src="https://img.shields.io/badge/platform-Windows%2010%2F11-blue" alt="platform">
-  <img src="https://img.shields.io/github/stars/SeverusZh/dsh-notify-windows?style=social" alt="stars">
-  <img src="https://img.shields.io/badge/DSH%200.1.5--rc.1%20%2F%20rc.2%20%2F%200.1.6--alpha.2%20%2F%200.1.7--rc.1%20%2F%20rc.2%20%2F%200.2.0--rc.1-blue" alt="dsh">
-</p>
+**DeepSeek Harness（DSH）插件：当 Agent 需要你关注时，向 Windows 发送系统桌面通知**
+
+[![npm version](https://img.shields.io/npm/v/dsh-notify-windows?style=flat-square&logo=npm)](https://www.npmjs.com/package/dsh-notify-windows)
+[![npm downloads](https://img.shields.io/npm/dm/dsh-notify-windows?style=flat-square&logo=npm)](https://www.npmjs.com/package/dsh-notify-windows)
+[![license](https://img.shields.io/npm/l/dsh-notify-windows?style=flat-square)](LICENSE)
+[![node](https://img.shields.io/badge/node-%3E%3D20-brightgreen?style=flat-square&logo=node.js)](package.json)
+[![GitHub release](https://img.shields.io/github/v/release/SeverusZh/dsh-notify-windows?style=flat-square&logo=github)](https://github.com/SeverusZh/dsh-notify-windows/releases)
+[![GitHub stars](https://img.shields.io/github/stars/SeverusZh/dsh-notify-windows?style=flat-square&logo=github)](https://github.com/SeverusZh/dsh-notify-windows)
+[![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.1.7--rc.1-blue?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
+[![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com)
+
+</div>
 
 **任务完成** ✅ ｜ **等待审批** 🔐 ｜ **等待回答** ❓ —— 离开屏幕也不错过任何需要你处理的事。
 
-> **兼容性**：v0.7.8 支持 DSH **0.1.2-alpha.4+**，已在 **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1 / 0.1.7-rc.2 / 0.2.0-rc.1** 上核对 `snapshotEvents()` 契约并通过真实-Cordis 探针（15/15；peer `@deepseek-ai/cordis ^4.0.2`）。历史读取同时兼容旧版 `session.events`（DSH ≤ 0.1.2-alpha.3）与新版 `snapshotEvents()`（DSH 0.1.2-alpha.4 起该属性已不存在），升级到 0.7.5 后摘要 / `/goal` 轮次 / 审批策略恢复正常。收到过「重启后所有通知静默」问题的请升级到 **0.7.3+**（见 FAQ）。
->
-> **0.1.7-rc.1 说明**：该版本起 `snapshotEvents()` 被标记为 `@deprecated`（"新调用被禁止，现有未迁移逻辑可暂时保留"）。本插件的历史读取属既有逻辑，按官方 Agent Note 的延期口径暂不迁移——DSH 仍在内存保留完整事件序列，通知摘要与 `/goal` 轮次检查照常工作；待 DSH 提供异步分页读取替代后再迁移。
+---
 
-## ✨ 功能
+## ✨ 功能特性 / Features
 
 - **任务完成提醒**：监听会话 `turn/end` 事件，任务完成 / 出错 / 输出超限时立即弹窗，标题自动使用会话标题，正文显示原因与轮次；
 - **权限审批提醒**：监听 `approval/asked` 事件，有操作等待你的审批时立即提醒；会话审批策略为 `never` 时自动跳过（此时没有东西在等你）；
@@ -25,7 +28,7 @@
 - **零依赖**：通知通过 Windows PowerShell 5.1 的 WinRT Toast API 发送，自动注册 HKCU 的 AppUserModelId（无需管理员权限）；
 - **可诊断**：可选日志（`%TEMP%\dsh-notify\notify.log`）与 debug 事件日志。
 
-## 🚀 安装
+## 📦 安装 / Install
 
 项目通过 **`dsh.bundle`** 机制安装：npm 包自带的 `cordis.patch.yml` 会在
 `dsh plugin add` 后自动挂载 `dsh-notify` 入口，**不需要**再手动 `- insert:`。
@@ -53,7 +56,7 @@ dsh plugin --profile web remove dsh-notify-windows
 
 更新后需重启 DSH 宿主（新增 bundle 层需要重新启动）。
 
-## ⚙️ 配置项
+## ⚙️ 配置 / Configuration
 
 插件行 `config` 全字段可选，未填按默认值。需要调整时，在
 `$DSH_HOME/profiles/web/cordis.patch.yml` 里按 id 覆盖主条目即可
@@ -91,7 +94,7 @@ dsh plugin --profile web remove dsh-notify-windows
 | `preferExisting` | `true` | true 走 launcher 优先聚焦已开 DSH 窗口；false 直接用默认浏览器打开 URL |
 | `webUrl` | `''` | 覆盖自动发现的基地址（如 `http://192.168.1.5:4000`），留空自动发现（默认 `http://127.0.0.1:3080`） |
 
-## 🌐 多语言
+## 🌐 多语言 / Localization
 
 toast 文案取自内置语言包，由 `locale` 选择。默认 `zh`，因此已有安装升级后文案完全不变；
 `en` 与 `ru` 为完整语言包。任何一条文案都可以用 `messages` 按 key 覆盖，覆盖优先于语言包：
@@ -124,7 +127,7 @@ toast 文案取自内置语言包，由 `locale` 选择。默认 `zh`，因此�
 审批 / 提问路径的日志行新增 `title` 与 `body` 字段（与 `notify` 行一致），
 `%TEMP%\dsh-notify\notify.log` 因此能直接看到实际发出的文案。
 
-## 🔔 触发场景
+## 🔔 触发场景 / Triggers
 
 | 场景 | 会话事件 | 通知示例 |
 | --- | --- | --- |
@@ -133,7 +136,7 @@ toast 文案取自内置语言包，由 `locale` 选择。默认 `zh`，因此�
 | 等待审批 | `approval/asked` | 「DeepSeek Harness · 需要审批 / 工具 pwsh：…」 |
 | 等待回答 | `tool/call`（含 run_code 检测） | 「DeepSeek Harness · 需要回答 / 是否继续？」 |
 
-## 🔗 点击通知跳转
+## 🔗 点击通知跳转 / Click to Open
 
 任务完成 / 等待审批 / 等待回答的 toast 可点击 → 打开 DSH Web GUI。优先聚焦已打开的
 DSH 浏览器标签或 Chrome Application 窗口；没有已开窗口时在默认浏览器新开标签并打开 GUI。
@@ -149,7 +152,26 @@ DSH 浏览器标签或 Chrome Application 窗口；没有已开窗口时在默�
 
 > 说明：DSH 0.1.0-rc.8 前端暂不支持按 URL 直达单个会话；点击后打开的是 DSH 界面（首页/会话列表）并聚焦已有窗口，目标会话需在列表中选择。未来 DSH 前端支持深链后 `?session=<id>` 将直接定位。
 
-## 🧪 验证
+## 🧩 兼容性 / Compatibility
+
+`peerDependencies` 中的 `@deepseek-ai/dsh*` 范围决定插件能否被 DSH 的兼容门禁放行。本插件声明 **`>=0.1.7-rc.1`**（无上限），并已实测：
+
+| DSH 版本 | 状态 |
+| --- | --- |
+| 0.1.5-rc.1 | ✅ 实测通过 |
+| 0.1.5-rc.2 | ✅ 实测通过 |
+| 0.1.6-alpha.2 | ✅ 实测通过 |
+| 0.1.7-rc.1 | ✅ 实测通过 |
+| 0.1.7-rc.2 | ✅ 实测通过 |
+| 0.2.0-rc.1 | ✅ 实测通过 |
+
+> 只列出**实际跑过**的版本；未实测的不列。
+
+v0.8.0 支持 DSH **0.1.2-alpha.4+**，已在 **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1 / 0.1.7-rc.2 / 0.2.0-rc.1** 上核对 `snapshotEvents()` 契约并通过真实-Cordis 探针（15/15；peer `@deepseek-ai/cordis ^4.0.2`）。历史读取同时兼容旧版 `session.events`（DSH ≤ 0.1.2-alpha.3）与新版 `snapshotEvents()`（DSH 0.1.2-alpha.4 起该属性已不存在），升级到 0.7.5 后摘要 / `/goal` 轮次 / 审批策略恢复正常。收到过「重启后所有通知静默」问题的请升级到 **0.7.3+**（见 FAQ）。
+
+> **0.1.7-rc.1 说明**：该版本起 `snapshotEvents()` 被标记为 `@deprecated`（"新调用被禁止，现有未迁移逻辑可暂时保留"）。本插件的历史读取属既有逻辑，按官方 Agent Note 的延期口径暂不迁移——DSH 仍在内存保留完整事件序列，通知摘要与 `/goal` 轮次检查照常工作；待 DSH 提供异步分页读取替代后再迁移。
+
+## 🛠️ 开发 / Develop
 
 ```powershell
 node scripts\smoke-test.mjs
@@ -157,7 +179,7 @@ node scripts\smoke-test.mjs
 
 独立进程内用 cordis Context 模拟会话事件：应弹出任务完成 / 审批 / 提问三条测试通知，并断言日志记录与过滤行为（子代理、`never` 策略、无关调用均被过滤）。
 
-## ❓ 常见问题
+## ❓ FAQ
 
 - **收不到通知？** 检查 Windows「通知与操作」设置是否允许该应用显示通知，以及「专注助手」是否开启；首次发送会自动注册 AUMID。插件启动时会自检通知通道（`powershell.exe` 与 `notify.ps1` 是否可达），通道不可用会在 DSH 日志中立即告警；每次发送失败也会记录详细原因到 `%TEMP%\dsh-notify\notify.log`。
 - **WSL 下收不到通知？** 插件会自动用 `wslpath -w` 把脚本路径转成 `\\wsl.localhost\...` UNC 路径，并优先通过 `/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe` 调用 PowerShell（不依赖 PATH，systemd / cron 等最小环境也能工作）。若仍失败，查看 `%TEMP%\dsh-notify\notify.log` 中的 `error` 条目。
@@ -167,6 +189,6 @@ node scripts\smoke-test.mjs
 - **通知摘要变空、`/goal` 中间回合开始提醒、`never` 策略仍提醒？** 插件读取的 `session.events` 属性**自 DSH 0.1.2-alpha.4 起就不存在**（历史读取改为 `snapshotEvents()`；0.1.2-alpha.3 及更早才有该属性），**0.7.4 及更早**读取该属性会拿到 `undefined` 后静默降级，出现上述三种症状。**请升级到 0.7.5 及以上**（历史读取已同时兼容两种 API；若升级后 `%TEMP%\dsh-notify\notify.log` 仍出现 `history-unavailable` 条目，请附日志反馈）。
 - **更新插件代码后如何生效？** 执行 `dsh plugin --profile web update dsh-notify-windows` 后重启 DSH 宿主。
 
-## 📄 许可证
+## 📄 许可证 / License
 
 [MIT](./LICENSE) © 2026 SeverusZh
