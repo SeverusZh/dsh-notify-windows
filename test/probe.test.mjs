@@ -520,6 +520,12 @@ test('resolveMessages: 各语言包键集合一致、占位符齐备、非法覆
   // 未知 / 缺失 locale 回退默认包，而不是留下空正文。
   assert.deepEqual(resolveMessages({ locale: 'xx' }), MESSAGES.zh)
   assert.deepEqual(resolveMessages({}), MESSAGES.zh)
+  // 原型属性名（constructor / toString / __proto__ / …）不是语言包：裸索引会取到
+  // Object.prototype 上的成员，展开后得到空包，正文渲染成字面量 "undefined"。
+  // 必须与其它未知 locale 一样回退默认包。
+  for (const proto of ['constructor', 'toString', '__proto__', 'hasOwnProperty', 'valueOf']) {
+    assert.deepEqual(resolveMessages({ locale: proto }), MESSAGES.zh, `locale "${proto}" must fall back to zh`)
+  }
   // messages 覆盖优先于语言包。
   assert.equal(resolveMessages({ locale: 'en', messages: { completed: 'CUSTOM' } }).completed, 'CUSTOM')
   // 非字符串覆盖被忽略，绝不把 "[object Object]" 之类的值泄漏进通知正文。

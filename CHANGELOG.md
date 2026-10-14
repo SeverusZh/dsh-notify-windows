@@ -25,6 +25,13 @@
   - 端到端 `messages` 覆盖：未覆盖的键仍用所选语言包；
   - 端到端 approval / ask 的标题与正文，含 `approvalGeneric` 与 `askFallback` 两条兜底文案。
 
+### 修复
+
+- `resolveMessages` 的 locale 查找改用 `Object.hasOwn`：`locale` 若恰为 `Object.prototype` 成员名
+  （`constructor` / `toString` / `__proto__` / `hasOwnProperty` / `valueOf`），裸索引会取到函数、
+  展开成空包，正文渲染成字面量 `undefined` —— 与「未知 locale 回退默认包」的承诺不符。
+  现在与其它未知 locale 一样回退 `zh`。
+
 ## [0.7.8] - 2026-09-29
 
 ### 兼容性
