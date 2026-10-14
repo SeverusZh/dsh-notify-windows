@@ -1,6 +1,6 @@
 {
   "name": "dsh-notify-windows",
-  "version": "0.8.0-beta.0",
+  "version": "0.8.0",
   "description": "DeepSeek Harness (DSH) \u63d2\u4ef6\uff1a\u4efb\u52a1\u5b8c\u6210 / \u7b49\u5f85\u5ba1\u6279 / \u7b49\u5f85\u56de\u7b54\u65f6\u53d1\u9001 Windows \u7cfb\u7edf\u684c\u9762\u901a\u77e5",
   "repository": {
     "type": "git",
