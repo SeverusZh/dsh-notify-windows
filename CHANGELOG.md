@@ -4,6 +4,19 @@
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-10-17
+
+### 兼容性
+
+- **适配 DSH 0.2.1-rc.1 / rc.2**：新增 `engines.dsh: ">=0.1.5-rc.1"`。DSH 0.2.1 起
+  兼容性门禁优先读取 `engines.dsh`，未声明时才回退到 `peerDependencies`；本插件
+  仍保持无上限范围，0.1.5-rc.1 起的宿主均可加载。
+  `dsh.compatibility.dshReleases` 新增 `"0.2.1-rc.1"` / `"0.2.1-rc.2": "compatible"`。
+- **验证**：0.2.1-rc.1 依赖集下 `npm test` 20/20 通过；0.2.1-rc.1 与已安装的
+  0.2.1-rc.2 均通过 DSH 的 `evaluatePluginCompatibility()` 门禁。本次无运行时代码
+  变更：插件只依赖 Cordis 事件与 `snapshotEvents()`，该 API 在 0.2.1 中仍保留。
+
+
 ## [0.8.0] - 2026-10-14
 
 ### 新增
