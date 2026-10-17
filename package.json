@@ -1,7 +1,7 @@
 {
   "name": "dsh-notify-windows",
-  "version": "0.8.0",
-  "description": "DeepSeek Harness (DSH) \u63d2\u4ef6\uff1a\u4efb\u52a1\u5b8c\u6210 / \u7b49\u5f85\u5ba1\u6279 / \u7b49\u5f85\u56de\u7b54\u65f6\u53d1\u9001 Windows \u7cfb\u7edf\u684c\u9762\u901a\u77e5",
+  "version": "0.8.1",
+  "description": "DeepSeek Harness (DSH) 插件：任务完成 / 等待审批 / 等待回答时发送 Windows 系统桌面通知",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/SeverusZh/dsh-notify-windows.git"
@@ -22,7 +22,8 @@
   ],
   "license": "MIT",
   "engines": {
-    "node": ">=20"
+    "node": ">=20",
+    "dsh": ">=0.1.5-rc.1"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.2"
@@ -44,7 +45,9 @@
         "0.1.6-alpha.2": "compatible",
         "0.1.7-rc.1": "compatible",
         "0.1.7-rc.2": "compatible",
-        "0.2.0-rc.1": "compatible"
+        "0.2.0-rc.1": "compatible",
+        "0.2.1-rc.1": "compatible",
+        "0.2.1-rc.2": "compatible"
       },
       "node": ">=20"
     }

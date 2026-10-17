@@ -10,7 +10,7 @@
 [![node](https://img.shields.io/badge/node-%3E%3D20-brightgreen?style=flat-square&logo=node.js)](package.json)
 [![GitHub release](https://img.shields.io/github/v/release/SeverusZh/dsh-notify-windows?style=flat-square&logo=github)](https://github.com/SeverusZh/dsh-notify-windows/releases)
 [![GitHub stars](https://img.shields.io/github/stars/SeverusZh/dsh-notify-windows?style=flat-square&logo=github)](https://github.com/SeverusZh/dsh-notify-windows)
-[![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.1.7--rc.1-blue?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
+[![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.1.5--rc.1%20%2F%200.2.1--rc.1-blue?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
 [![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com)
 
 </div>
@@ -160,7 +160,7 @@ needed); on failure it silently degrades to "open in default browser".
 
 ## 🧩 兼容性 / Compatibility
 
-The `@deepseek-ai/dsh*` range in `peerDependencies` determines whether the plugin passes DSH's compatibility gate. This plugin declares **`>=0.1.7-rc.1`** (no upper bound), and has been tested on:
+Since DSH 0.2.1 the compatibility gate prefers `engines.dsh`. This plugin declares **`engines.dsh: ">=0.1.5-rc.1"`** (no upper bound; older DSH falls back to peer rules when the field is absent) and has been checked on:
 
 | DSH version | Status |
 | --- | --- |
@@ -170,10 +170,12 @@ The `@deepseek-ai/dsh*` range in `peerDependencies` determines whether the plugi
 | 0.1.7-rc.1 | ✅ Tested |
 | 0.1.7-rc.2 | ✅ Tested |
 | 0.2.0-rc.1 | ✅ Tested |
+| 0.2.1-rc.1 | ✅ Gate + unit tests |
+| 0.2.1-rc.2 | ✅ Gate |
 
 > Only versions that were **actually run** are listed; untested versions are omitted.
 
-v0.8.0 supports DSH **0.1.2-alpha.4+** and was verified against the `snapshotEvents()` contract on **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1 / 0.1.7-rc.2 / 0.2.0-rc.1** with the real-Cordis probe suite (15/15; peer `@deepseek-ai/cordis ^4.0.2`). Session history is read through both the legacy `session.events` (DSH <= 0.1.2-alpha.3) and `snapshotEvents()` (DSH 0.1.2-alpha.4+, where that property no longer exists), so excerpts, `/goal` round detection and approval-policy suppression work again after upgrading to 0.7.5. If you saw "all notifications went silent after a restart", upgrade to **0.7.3+** (see FAQ).
+v0.8.1 supports DSH **0.1.2-alpha.4+** and was verified against the `snapshotEvents()` contract on **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1 / 0.1.7-rc.2 / 0.2.0-rc.1**; on **0.2.1-rc.1** it passes the compatibility gate and 20 unit tests, and **0.2.1-rc.2** passes the gate. Session history is read through both the legacy `session.events` (DSH <= 0.1.2-alpha.3) and `snapshotEvents()` (DSH 0.1.2-alpha.4+, where that property no longer exists), so excerpts, `/goal` round detection and approval-policy suppression work again after upgrading to 0.7.5. If you saw "all notifications went silent after a restart", upgrade to **0.7.3+** (see FAQ).
 
 > **0.1.7-rc.1 note**: since this release `snapshotEvents()` is marked `@deprecated` ("new calls forbidden; existing unmigrated logic may stay for now"). This plugin's history read is such existing logic, so under the official Agent Note's deferral policy it is not migrated yet — DSH still keeps the full event sequence in memory, so notification excerpts and `/goal` round checks keep working; migration will follow once DSH offers an asynchronous paged read.
 

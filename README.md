@@ -10,7 +10,7 @@
 [![node](https://img.shields.io/badge/node-%3E%3D20-brightgreen?style=flat-square&logo=node.js)](package.json)
 [![GitHub release](https://img.shields.io/github/v/release/SeverusZh/dsh-notify-windows?style=flat-square&logo=github)](https://github.com/SeverusZh/dsh-notify-windows/releases)
 [![GitHub stars](https://img.shields.io/github/stars/SeverusZh/dsh-notify-windows?style=flat-square&logo=github)](https://github.com/SeverusZh/dsh-notify-windows)
-[![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.1.7--rc.1-blue?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
+[![DSH](https://img.shields.io/badge/DSH-%E2%89%A50.1.5--rc.1%20%2F%200.2.1--rc.1-blue?style=flat-square)](https://github.com/deepseek-ai/deepseek-harness)
 [![Awesome DSH Plugin](https://awesome-dsh-plugin.com/badge.svg)](https://awesome-dsh-plugin.com)
 
 </div>
@@ -154,7 +154,7 @@ DSH 浏览器标签或 Chrome Application 窗口；没有已开窗口时在默�
 
 ## 🧩 兼容性 / Compatibility
 
-`peerDependencies` 中的 `@deepseek-ai/dsh*` 范围决定插件能否被 DSH 的兼容门禁放行。本插件声明 **`>=0.1.7-rc.1`**（无上限），并已实测：
+DSH 0.2.1 起兼容门禁优先读取 `engines.dsh`。本插件声明 **`engines.dsh: ">=0.1.5-rc.1"`**（无上限；旧版 DSH 在未声明该字段时沿用 peer 规则），并已核对：
 
 | DSH 版本 | 状态 |
 | --- | --- |
@@ -164,10 +164,12 @@ DSH 浏览器标签或 Chrome Application 窗口；没有已开窗口时在默�
 | 0.1.7-rc.1 | ✅ 实测通过 |
 | 0.1.7-rc.2 | ✅ 实测通过 |
 | 0.2.0-rc.1 | ✅ 实测通过 |
+| 0.2.1-rc.1 | ✅ 兼容门禁 + 单测通过 |
+| 0.2.1-rc.2 | ✅ 兼容门禁通过 |
 
 > 只列出**实际跑过**的版本；未实测的不列。
 
-v0.8.0 支持 DSH **0.1.2-alpha.4+**，已在 **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1 / 0.1.7-rc.2 / 0.2.0-rc.1** 上核对 `snapshotEvents()` 契约并通过真实-Cordis 探针（15/15；peer `@deepseek-ai/cordis ^4.0.2`）。历史读取同时兼容旧版 `session.events`（DSH ≤ 0.1.2-alpha.3）与新版 `snapshotEvents()`（DSH 0.1.2-alpha.4 起该属性已不存在），升级到 0.7.5 后摘要 / `/goal` 轮次 / 审批策略恢复正常。收到过「重启后所有通知静默」问题的请升级到 **0.7.3+**（见 FAQ）。
+v0.8.1 支持 DSH **0.1.2-alpha.4+**，已在 **0.1.5-rc.1 / 0.1.5-rc.2 / 0.1.6-alpha.2 / 0.1.7-rc.1 / 0.1.7-rc.2 / 0.2.0-rc.1** 上核对 `snapshotEvents()` 契约；在 **0.2.1-rc.1** 上通过兼容门禁与 20 项单测，0.2.1-rc.2 门禁通过。历史读取同时兼容旧版 `session.events`（DSH ≤ 0.1.2-alpha.3）与新版 `snapshotEvents()`（DSH 0.1.2-alpha.4 起该属性已不存在），升级到 0.7.5 后摘要 / `/goal` 轮次 / 审批策略恢复正常。收到过「重启后所有通知静默」问题的请升级到 **0.7.3+**（见 FAQ）。
 
 > **0.1.7-rc.1 说明**：该版本起 `snapshotEvents()` 被标记为 `@deprecated`（"新调用被禁止，现有未迁移逻辑可暂时保留"）。本插件的历史读取属既有逻辑，按官方 Agent Note 的延期口径暂不迁移——DSH 仍在内存保留完整事件序列，通知摘要与 `/goal` 轮次检查照常工作；待 DSH 提供异步分页读取替代后再迁移。
 
